@@ -32,7 +32,7 @@ impl MillGame {
         let mut not_valid = true;
         let current_turn: Player = self.turn.clone(); 
         let opponent = get_other_player(current_turn);
-        let mut index: u8 = 25; 
+        let mut index: u8; 
         println!("You closed a Mill! Which stone do you want to delete?");
         while not_valid {
             index = get_user_input_as_number(); 
@@ -210,7 +210,8 @@ impl MillGame {
     pub fn run(&mut self){
         println!("Welcome to this mill game. The fields are indexed the following way:");
         println!("Starting from the upper, middle field on the innermorst ring with 1, the indexes increment clockwise and outwarts.");
-        println!("Note that after one ring is finished, the next ring starts again at the upper middle field.");
+        println!("Note that after one ring is finished, the next ring starts again at the upper middle field. Here's a visual:");
+        print_tutorial_board();
         println!("type in anything and press 'enter' to start"); 
         let mut user_input = String::new();
         io::stdin().read_line(&mut user_input).expect("Error parsing user input");
@@ -242,7 +243,7 @@ impl MillGame {
            self.game_over = self.is_game_over();
            self.turn_counter +=1;
         }
-        println!("{}, The game went on for {} rounds!", self.print_winner(), self.turn_counter);
+        println!("{} The game went on for {} rounds!", self.print_winner(), self.turn_counter);
     }
 }
 
@@ -266,4 +267,50 @@ pub fn get_user_input_as_number() -> u8 {
         }
     }
 } 
+
+ fn print_tutorial_board(){
+    let a = 24;
+    let b = 17;
+    let c =  18;
+    println!("{}-----------{}-----------{}", a, b, c);
+    println!("|            |            |");
+
+    let a = 16;
+    let b =  9;
+    let c =  10;
+    println!("|   {}-------{}-------{}   |", a, b, c);
+    println!("|   |        |        |   |");
+
+    let a = 8;
+    let b = 1;
+    let c = 2;
+    println!("|   |   {}----{}----{}   |   |", a, b, c);
+    println!("|   |   |         |   |   |");
+
+    let a = 23;
+    let b = 15;
+    let c = 7;
+    let d = 3;
+    let e = 11;
+    let f = 19;
+    println!("{}--{}--{}         {}---{}--{}", a, b, c, d, e, f);
+    println!("|   |   |         |   |   |");
+
+    let a = 6;
+    let b = 5;
+    let c = 4;
+    println!("|   |   {}----{}----{}   |   |", a, b, c);
+
+    println!("|   |        |        |   |");
+    let a = 14;
+    let b =  13;
+    let c = 12;
+    println!("|   {}-------{}-------{}  |", a, b, c);
+
+    println!("|            |            |");
+    let a = 22;
+    let b = 21;
+    let c = 20;
+    println!("{}-----------{}-----------{}", a, b, c);
+}
 
