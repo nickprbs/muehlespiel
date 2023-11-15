@@ -15,7 +15,7 @@ pub struct MillGame {
 }
 impl MillGame {
     pub fn new() -> MillGame {
-        let mut temp_last_move: Vec<String> = Vec::new();
+        let temp_last_move: Vec<String> = Vec::new();
         let millgame: MillGame = MillGame{
             gameboard: GameBoard::new(),
             past_moves: temp_last_move,

@@ -1,5 +1,5 @@
 mod datastructures;
-use datastructures::*;
+
 mod millgame;
 use millgame::*;
 

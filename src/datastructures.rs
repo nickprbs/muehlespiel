@@ -24,7 +24,7 @@ pub struct GameBoard {
 impl GameBoard {
     //constructs new Gameboard
     pub fn new() -> GameBoard {
-        let mut game_board : GameBoard = GameBoard {
+        let game_board : GameBoard = GameBoard {
             board : String::from("EEEEEEEEEEEEEEEEEEEEEEEE"),
             gamephase : Phase::Place,
             white_stones : 0,
@@ -169,12 +169,12 @@ impl GameBoard {
     //returns true if the index is part of a mill 
     pub fn mill_checker (&self, index: u8)->bool {
         let color: Option<Player> = self.get_player_at(index);
-        let mut result :bool = false;
+        let result :bool = false;
         if color.is_none() {return false}
         let color: Player = color.unwrap();
         //case 1: middle field
         if index % 2 == 1 {
-        let mut ring: u8 = determine_ring(index);
+        let ring: u8 = determine_ring(index);
             
             if ring == 1 && self.is_color_matching(color, ((index+8), (index+16))) {
                 return true
@@ -218,7 +218,7 @@ impl GameBoard {
         output 
     }
     pub fn has_only_mills (&self, color: Player)-> bool {
-        let mut result :bool = true; 
+        let result :bool = true; 
         let instances : Vec<u8> = self.get_all_stones_of(color);
         for stone in instances {
             if !self.mill_checker(stone){
@@ -335,7 +335,7 @@ impl MillMove {
         }else if gameboard.total_placed_white_stones > 9 {
             panic!("Invalid State: too many white stines have been placed! This should not be possible!");
         }
-        let mut valid: bool = false;
+        let _valid: bool = false;
         let turn = self.turn;
         let stone_amount = match turn{
             Player::Black => {gameboard.get_blackstones()}
@@ -415,7 +415,7 @@ pub fn decode_phase (phase: Phase)->String {
     let mut clone: i8 = index.clone() as i8;
     let mut output : u8 =0;
     while clone > 0 {
-        for i in 0..8 {
+        for _i in 0..8 {
             clone -=1; 
         }
         output+=1; 
