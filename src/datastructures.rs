@@ -1,3 +1,5 @@
+use std::str::FromStr;
+use std::fmt;
 
 
 #[derive(Clone,Copy,PartialEq)]
@@ -12,12 +14,21 @@ pub enum Phase {
     Move, 
 }
 
+#[derive(Debug, Clone)]
+pub struct InvalidFormatError;
+
+impl fmt::Display for InvalidFormatError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "invalid format of gameboard string")
+    }
+}
+
 #[derive(Clone)]
 pub struct GameBoard {
     pub   board: String,
     pub   gamephase: Phase,
-          white_stones: u8, 
-          black_stones: u8, 
+    pub      white_stones: u8, 
+    pub      black_stones: u8, 
     pub   total_placed_white_stones: u8,
     pub   total_placed_black_stones: u8,
 } 
@@ -305,6 +316,47 @@ impl GameBoard {
         let b = decode_player(self.get_player_at(21));
         let c = decode_player(self.get_player_at(20));
         println!("{}------------{}------------{}", a, b, c);
+    }
+}
+
+impl FromStr for GameBoard {
+    type Err = InvalidFormatError;  
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() == 24 {
+        let mut white: u8 = 0;
+        let mut black: u8 = 0;
+        let boardstring = String::from(format!("{}{}{}", &s[16..24], &s[8..16], &s[0..8]));
+        let gameboard: GameBoard; 
+        for character in &mut s.chars() {
+            if character == 'B' {
+                black +=1;
+            } else if character == 'W' {
+                white +=1;
+            } else if character == 'E' {
+            } else {
+               return Err(InvalidFormatError)
+            }
+        }
+         gameboard = GameBoard{
+            board: boardstring,
+            gamephase: Phase::Move,
+            white_stones: white,
+            black_stones: black,
+            total_placed_black_stones: 9,
+            total_placed_white_stones: 9,
+        };
+            return Ok(gameboard)
+        } else {
+           return Err(InvalidFormatError)
+        }
+        
+    }
+}
+
+impl ToString for GameBoard {
+    fn to_string(&self) -> String {
+        String::from(format!("{}{}{}", &self.board[16..24], &self.board[8..16], &self.board[0..8] ))
     }
 }
 
