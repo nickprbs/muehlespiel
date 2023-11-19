@@ -104,6 +104,7 @@ impl MillGame {
         new_board
     }
 
+
     fn retrieve_new_millmove(&mut self)-> MillMove{
         let turn: Player = get_other_player(self.turn.clone());
         let current_phase : Phase = self.gameboard.gamephase.clone();

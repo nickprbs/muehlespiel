@@ -8,7 +8,7 @@ pub enum Player {
     White,
 }
 
-#[derive(Clone,Copy)]
+#[derive(Clone,Copy,PartialEq)]
 pub enum Phase {
     Place,
     Move, 
@@ -73,6 +73,18 @@ impl GameBoard {
     pub fn is_free_at(&self, index: u8)-> bool { 
         matches!(self.get_player_at(index), None)
    }
+   
+   // returns a Vector<u8> of all free fields
+   pub fn get_free_fields(&self)-> Vec<u8> {
+        let mut output_vec : Vec<u8> = Vec::new();
+        for i in 1..=24 {
+            if self.is_free_at(i) {
+                output_vec.push(i);
+            }
+        }
+        output_vec
+   }
+
     // changes the current stone type on the selected field. Only usable if field is empty!  
     pub fn set_stone_at(&mut self, index: u8, color: Player){
         if self.is_free_at(index) {
@@ -238,40 +250,133 @@ impl GameBoard {
         }
         result 
     }
-
-    pub fn get_amount_of_possible_moves_in_movephase(&self, player: Player)-> u8 {
-        let mut amount : u8 = 0; 
-        let stone_amount = match player {
-            Player::Black => {self.get_blackstones()}
-            Player::White => {self.get_whitestones()}
-        };
-        let player_instances: Vec<u8>= self.get_all_stones_of(player); 
-        if stone_amount == 3 {
-            //player can teleport his stones so for each stone there are amountOfEmptyFields-many possibilities 
-            amount = 3 * (24 - (self.get_blackstones() + self.get_whitestones()));
-        } else {
-            for instance in player_instances {
-                 let instance_neighbours = self.get_neighbours(instance);
-                    for neighbour in instance_neighbours {
-                        if self.is_free_at(neighbour){
-                            amount +=1;
+     
+     //enumerates all possible moves of one fixed position inside a Vector<MillMove>
+     fn enurmerate_moves(&self, position: u8, result: &mut Vec<MillMove>){
+        let mut _player= self.get_player_at(position);
+        let neighbour_vec = self.get_neighbours(position);
+        let free_field_vec = self.get_free_fields();
+        let free_field_vec_clone = free_field_vec.clone();
+        match _player {
+            None=> {result.clear();}
+            Some(millplayer) => {
+                result.clear();
+                let _player = millplayer; 
+                let stone_amount = match _player {
+                    Player::Black => {self.get_blackstones()}
+                    Player::White => {self.get_whitestones()}
+                }; 
+                if stone_amount == 3 {
+                    for free_field in free_field_vec {
+                        let possible_move: MillMove = MillMove::new(_player, &self, position, free_field);
+                        if possible_move.is_valid(self){
+                            result.push(possible_move);
+                        }
+                    }
+                } else {
+                    for neighbour in neighbour_vec {
+                        if self.is_free_at(neighbour) {
+                            let possible_move: MillMove = MillMove::new(_player, &self, position, neighbour);
+                            if possible_move.is_valid(self){
+                                result.push(possible_move);
+                            }
                         }
                     }
                 }
+            }
+        }
+        
+    }
+
+    //returns a Vec<MillMove> of all possible moves of the player. 
+    fn possile_moves_vector(&self, player:Player) -> Vec<MillMove> {
+        let mut output: Vec<MillMove> = Vec::new();
+        let player_instances: Vec<u8> = self.get_all_stones_of(player);
+        let mut temp_moves_vec: Vec<MillMove> = Vec::new();
+            for instance in player_instances {
+                self.enurmerate_moves(instance, &mut temp_moves_vec);
+                output.extend(temp_moves_vec.drain(..));
+                temp_moves_vec.clear();
+            }
+        output 
+    }
+
+    pub fn possible_moves_amount(&self, player: Player)-> u8{
+        self.possile_moves_vector(player).len() as u8
+    }
+
+    pub fn possible_mill_amount(&self, player: Player) -> u8 {
+        let all_moves = self.possile_moves_vector(player);
+        let mut amount: u8 = 0;
+        for one_move in all_moves {
+            let temp_board = self.move_simulator(one_move);
+            if temp_board.mill_checker(one_move.destination){
+                amount +=1;
+            }
+        }
+        amount 
+    }
+    //returns amount of possible opponent stones, that could be taken when closing a mill
+    pub fn takeable_opponent_amount(&self, player: Player)-> u8 {
+        let mut amount: u8 = 0;
+        if self.possible_mill_amount(player) > 0 {
+        let opponent = get_other_player(player);
+        if self.has_only_mills(opponent){
+            let stone_amount = match opponent {
+                Player::Black => {self.get_blackstones()}
+                Player::White => {self.get_whitestones()}
+            }; 
+            amount = stone_amount;
+        } else {
+            let opponent_instances = self.get_all_stones_of(opponent);
+            for opponent_instance in opponent_instances {
+                if !self.mill_checker(opponent_instance){
+                    amount +=1;
+                }
+            }
+        }
         }
         amount 
     }
 
     pub fn has_moves_left(&self, player:Player)->bool {
-        if self.get_amount_of_possible_moves_in_movephase(player) > 0 {
+        if self.possible_moves_amount(player) > 0 {
             return true
         } else {
             return false 
         }
     }
         
-    
+     //simulates a single move on current gameboard an outputs a new, updated board
+    pub fn move_simulator(&self, millmove: MillMove)->GameBoard{
+         let mut temp_board = self.clone(); 
+         if millmove.is_valid(&temp_board) {
+            match millmove.movetype {
+                Phase::Place => {
+                    temp_board.set_stone_at(millmove.destination, millmove.turn );
+                    temp_board.increment_stone_counter(millmove.turn); 
+                    //mill closed?
+                    if temp_board.mill_checker(millmove.destination) {
+                        
+                    }
+                    //all stones have been placed 
+                    if temp_board.total_placed_black_stones == 9 && temp_board.total_placed_white_stones == 9 {
+                        temp_board.set_gamephase(Phase::Move)
+                    }
+                }
+                Phase::Move => {
+                    temp_board.set_stone_at(millmove.destination, millmove.turn);
+                    temp_board.del_stone_at(millmove.origin);
+                }
+            }
+        } else {
+            println!("Couldn't apply changes! Move not valid!");
+        }
+        temp_board
+    }   
    
+
+
     pub fn print_gameboard(&self){
         let a = decode_player(self.get_player_at(24));
         let b = decode_player(self.get_player_at(17));
@@ -399,10 +504,12 @@ impl MillMove {
                     if gameboard.total_placed_black_stones + gameboard.total_placed_white_stones < 18 {
                         if stone_amount < 10 {
                             return true 
-                        } else { panic!("InvalidStateError: Already placed all possible stones for this player!");
+                        } else { println!("InvalidStateError: Already placed all possible stones for this player!");
+                                    return false 
                                 }
                     } else {
-                        panic!("InvalidStateError: Already placed all possible stones! Phase should be Move by now!");
+                        println!("InvalidStateError: Already placed all possible stones! Phase should be Move by now!");
+                        return false 
                     }
                 } else {
                     println!("InvalidActionError: Can't place stone on occupied field!");
@@ -483,6 +590,7 @@ pub fn decode_phase (phase: Phase)->String {
     output
     
  }
+
 
 
 
