@@ -8,6 +8,7 @@ pub enum Player {
     White,
 }
 
+
 #[derive(Clone,Copy,PartialEq)]
 pub enum Phase {
     Place,
