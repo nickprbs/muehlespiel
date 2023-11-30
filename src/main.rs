@@ -1,52 +1,52 @@
-mod datastructures;
-use std::str::FromStr;
-use std::fs::File;
-use std::io::{Write, BufReader, BufRead, Error};
-use std::io::prelude::*;
+// Simon Wazynski (M-Nr. 3659102)
+#[macro_use] extern crate scan_rules;
+
+mod test;
+mod constants;
+mod structs;
+mod modes;
+mod types;
+mod iterators;
+mod agents;
+
 use std::env;
-use datastructures::*;
-mod millgame;
-use millgame::*;
-
-
-use crate::datastructures::GameBoard;
-
-
+use crate::constants::*;
+use crate::modes::*;
+use crate::structs::*;
 
 fn main() {
-  read_and_write_move_information();
-}
+    let args: Vec<String> = env::args().collect();
+    let default_mode = String::from(DEFAULT_MODE);
+    let mode = &args.get(1).unwrap_or(&default_mode);
 
-
-fn run_new_game() {
-  let mut my_game= MillGame::new();
-  my_game.run();
-}
-
-fn read_and_write_move_information() -> Result<(), Error> {
-  let project_directory = env::current_dir()?;
-  let input_file_path = project_directory.parent().unwrap().join("input_felder.txt");
-  let output_file_path = project_directory.parent().unwrap().join("output_felder.txt");
-
- let input_file = File::open(&input_file_path)?;
- let file_reader = BufReader::new(input_file);
-
- let mut output_file = File::create(&output_file_path)?;
- for line in file_reader.lines(){
-  let line_content = line?;
-  let mut white_moves=0;
-  let mut white_mills=0;
-  let mut takeable_stones=0;
-    match line_content.parse::<GameBoard>() {
-      Ok(gameboard) => {
-         white_moves= gameboard.possible_moves_amount(Player::White);
-         white_mills= gameboard.possible_mill_amount(Player::White);
-         takeable_stones= gameboard.takeable_opponent_amount(Player::White);
-      }
-      Err(err) => {println!("Error parsing string to gameboard!")}
+    match mode.as_str() {
+        "player-vs-player" => player_vs_player(),
+        "enumerate" => enumerate_actions_from_file(),
+        "ai" => ai_mode(),
+        "ai-debug" => ai_debug_mode(),
+        "print-board" => print_board(),
+        &_ => no_mode_provided(),
     }
-   let output_line_content= String::from(format!("{} {} {}", white_moves, white_mills, takeable_stones));
-   writeln!(output_file, "{}", output_line_content);
 }
-Ok(())
+
+fn no_mode_provided() {
+    panic!("No (valid) mode provided (please add player-vs-player or enumerate as argument")
+}
+
+fn repeat_alignment(n: i16) -> u8 {
+    let result = n % (NUMBER_OF_ALIGNMENTS as i16);
+
+    if result < 0 {
+        return (NUMBER_OF_ALIGNMENTS as i16 + result) as u8
+    }
+
+    result as u8
+}
+
+// Piece
+// A token (in physical game usually a small round piece) that's placed on the board by players
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Piece {
+    location: Location,
+    owner: Team
 }

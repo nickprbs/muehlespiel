@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="26431a66-1db7-4775-ae58-22e3fbf304a0" name="Changes" comment="Add idea files">
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/muehlespiel.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/agent/agent.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/agent/minimax_agent.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/agent/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/agent/simple_placing_agent.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/datastructures.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/datastructures.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/millgame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/millgame.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;pr0gr8mm3r&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="8be86745-cbea-4374-807a-219f8cc6804f" />
+        <option name="url" value="https://github.com/nickprbs/muehlespiel" />
+      </UrlAndAccount>
+    </option>
+  </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="5hj5l15v" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="2YcUMYLpUQQPgG5p7fSBfdTlAo1" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;minimax-simon&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/mill&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/agent.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/minimax_agent.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/datastructures.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/main.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.hideToolchainNotifications&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/.idea" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/agent" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Cargo.Run muehlespiel">
+    <configuration name="Run muehlespiel" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package muehlespiel --bin muehlespiel" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test muehlespiel" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="test --workspace" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="explicitPathToStdlib" value="/nix/store/v8lsbj4xg88h5j6pzl6b43q7z9in465g-rust-src" />
+    <option name="toolchainHomeDirectory" value="/nix/store/v8bivqwv7m1mbqmm5lnq06ii98m6ysg3-rust-toolchain/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="26431a66-1db7-4775-ae58-22e3fbf304a0" name="Changes" comment="" />
+      <created>1700824313710</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1700824313710</updated>
+      <workItem from="1700824314750" duration="2318000" />
+      <workItem from="1701038955027" duration="300000" />
+      <workItem from="1701039261931" duration="1573000" />
+      <workItem from="1701040984344" duration="1914000" />
+      <workItem from="1701076961708" duration="17959000" />
+      <workItem from="1701259476560" duration="28000" />
+      <workItem from="1701333624855" duration="3000" />
+    </task>
+    <task id="LOCAL-00001" summary="Add idead files">
+      <option name="closed" value="true" />
+      <created>1700824344308</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1700824344308</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Add idea files">
+      <option name="closed" value="true" />
+      <created>1701039376185</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1701039376185</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Add idead files" />
+    <MESSAGE value="Add idea files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add idea files" />
+  </component>
+</project>
