@@ -21,8 +21,7 @@ impl Agent for SimplePlacingAgent {
 
                 evaluation_after_a.partial_cmp(evaluation_after_b)
                     .expect("Could not make ordering")
-            }
-            )
+            })
             .expect("No free place found")
     }
 }
