@@ -4,22 +4,23 @@ use crate::agents::simple::SimplePlacingAgent;
 use crate::iterators::TurnIterator;
 use crate::structs::{GamePhase, Team, Turn};
 use crate::types::game_board::QueryableGameBoard;
-use crate::types::GameContext;
+use crate::types::{GameBoardHistoryCounter, GameContext};
 
 pub const MINIMAX_DEPTH: u8 = 5;
 
 pub struct MinimaxAgent {}
 
 impl Agent for MinimaxAgent {
-    fn get_next_turn(&self, context: &GameContext) -> Turn {
+    fn get_next_turn(&self, context: &GameContext, history: &impl GameBoardHistoryCounter) -> Turn {
         let next_move = match context.phase {
             GamePhase::Placing => {
-                Some(SimplePlacingAgent{}.get_next_turn(context))
+                Some(SimplePlacingAgent{}.get_next_turn(context, history))
             }
             GamePhase::Moving => self.mini_max(
                 &context.team,
                 &context,
-                MINIMAX_DEPTH
+                MINIMAX_DEPTH,
+                history
             ).0
         };
         next_move.expect("No move found that I can do or game already finished!")
@@ -28,7 +29,7 @@ impl Agent for MinimaxAgent {
 
 impl MinimaxAgent {
 
-    fn mini_max(&self, team_to_maximize: &Team, context: &GameContext, depth: u8) -> (Option<Turn>, f32) {
+    fn mini_max(&self, team_to_maximize: &Team, context: &GameContext, depth: u8, history: &impl GameBoardHistoryCounter) -> (Option<Turn>, f32) {
         return if depth == 0 {
             (None, context.board.get_evaluation_for(team_to_maximize))
         } else {
@@ -56,7 +57,8 @@ impl MinimaxAgent {
                     let (child, grade) = self.mini_max(
                         &opponent,
                         &new_context,
-                        new_depth
+                        new_depth,
+                        history
                     );
 
                     (turn, (child, -grade))

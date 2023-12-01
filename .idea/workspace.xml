@@ -8,7 +8,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="26431a66-1db7-4775-ae58-22e3fbf304a0" name="Changes" comment="Add minimax on my previous code base">
-      <change beforePath="$PROJECT_DIR$/Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/agents/agent.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/agent.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/agents/mcts/mcts_agent.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/mcts/mcts_agent.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/agents/minimax/minimax_agent.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/minimax/minimax_agent.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/agents/simple/simple_placing_agent.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/agents/simple/simple_placing_agent.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/modes/ai.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/modes/ai.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/structs/team.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/structs/team.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/game_board.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/game_board.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/game_board_history_counter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/game_board_history_counter.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,29 +77,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "minimax-simon-2",
-    "last_opened_file_path": "/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/mill",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/agent.rs": "true",
-    "org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/minimax_agent.rs": "true",
-    "org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/datastructures.rs": "true",
-    "org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/main.rs": "true",
-    "org.rust.hideToolchainNotifications": "true",
-    "settings.editor.selected.configurable": "language.rust",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;minimax-simon-2&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/mill&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/agent.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/agent/minimax_agent.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/datastructures.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/home/simon/Dokumente/2022-xxxx_Uni/Studium/3._Semester/Programmierprojekt/Projekt/muehlespiel/src/main.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.hideToolchainNotifications&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/.idea" />
@@ -98,7 +109,24 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run muehlespiel">
+  <component name="RunManager" selected="Cargo.Build release">
+    <configuration name="Build release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="build --release" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run muehlespiel" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --package muehlespiel --bin muehlespiel" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -133,10 +161,15 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Cargo.Run muehlespiel" />
+      <item itemvalue="Cargo.Build release" />
+      <item itemvalue="Cargo.Test muehlespiel" />
+    </list>
   </component>
   <component name="RustProjectSettings">
-    <option name="explicitPathToStdlib" value="/nix/store/v8lsbj4xg88h5j6pzl6b43q7z9in465g-rust-src" />
-    <option name="toolchainHomeDirectory" value="/nix/store/v8bivqwv7m1mbqmm5lnq06ii98m6ysg3-rust-toolchain/bin" />
+    <option name="explicitPathToStdlib" value="/nix/store/45xa8vyf8dvx5dlwkk9rq1vnn5f80s7y-rust-src" />
+    <option name="toolchainHomeDirectory" value="/nix/store/w62nsk7gks6vq5g53skp3xfvp2m8wwwp-rust-toolchain/bin" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -154,6 +187,7 @@
       <workItem from="1701259476560" duration="28000" />
       <workItem from="1701333624855" duration="3000" />
       <workItem from="1701371746304" duration="314000" />
+      <workItem from="1701432651336" duration="5455000" />
     </task>
     <task id="LOCAL-00001" summary="Add idead files">
       <option name="closed" value="true" />
@@ -201,5 +235,9 @@
     <MESSAGE value="Add idea files" />
     <MESSAGE value="Add minimax on my previous code base" />
     <option name="LAST_COMMIT_MESSAGE" value="Add minimax on my previous code base" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

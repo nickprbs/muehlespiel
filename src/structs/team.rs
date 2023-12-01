@@ -17,6 +17,13 @@ impl Team {
         }
     }
 
+    pub fn encode(&self) -> char {
+        match self {
+            Black => 'B',
+            White => 'W',
+        }
+    }
+
     pub fn get_char_symbol(&self) -> char {
         match self {
             Black => '●',

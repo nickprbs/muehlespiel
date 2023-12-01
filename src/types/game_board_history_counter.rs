@@ -1,15 +1,31 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
+use crate::types::game_board::QueryableGameBoard;
 use crate::types::GameBoard;
 
-// TODO: Use hashmap with fast hashing function
-pub type GameBoardHistoryCounter = HashMap<GameBoard, u16>;
+pub type GameBoardHistoryMap = FnvHashMap<String, u8>;
 
-/*impl GameBoardHistoryCounter {
-    pub fn increment(&mut self, board: &GameBoard) {
-        self.insert(board, self.get_value(board) + 1);
+pub trait GameBoardHistoryCounter {
+    fn increment(&mut self, board: &GameBoard);
+    fn get_value(&self, board: &GameBoard) -> u8;
+    fn is_third_time(&self, board: &GameBoard) -> bool;
+    // Here, we can flush the history, because we will never have the same configs again if we take a piece.
+    fn removed_piece(&mut self);
+}
+
+impl GameBoardHistoryCounter for GameBoardHistoryMap {
+    fn increment(&mut self, board: &GameBoard) {
+        self.insert(board.encode(), self.get_value(board) + 1);
     }
 
-    pub fn get_value(&self, board: &GameBoard) -> u16 {
-        self.entry(board).unwrap_or(0)
+    fn get_value(&self, board: &GameBoard) -> u8 {
+        *self.get(&*board.encode()).unwrap_or(&0)
     }
-}*/
+
+    fn is_third_time(&self, board: &GameBoard) -> bool {
+        self.get_value(board) >= 2
+    }
+
+    fn removed_piece(&mut self) {
+        self.clear();
+    }
+}

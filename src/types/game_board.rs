@@ -2,6 +2,7 @@ use crate::constants::TOTAL_NUMBER_FIELDS;
 use crate::iterators::MoveActionIterator;
 use crate::Piece;
 use crate::structs::{Location, MillGroup, Team};
+use crate::types::GameBoardHistoryCounter;
 
 pub type GameBoard = Vec<Piece>;
 
@@ -21,6 +22,8 @@ pub trait QueryableGameBoard {
             )
             .collect()
     }
+
+    fn encode(&self) -> String;
 
     fn is_location_occupied(&self, location: &Location) -> bool;
 
@@ -91,10 +94,24 @@ pub trait QueryableGameBoard {
 
     fn get_evaluation_for(&self, team: &Team) -> f32;
 
-    fn get_result_for(&self, team: &Team) -> i8;
+    fn get_result_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> i8;
 }
 
 impl QueryableGameBoard for GameBoard {
+    fn encode(&self) -> String {
+        let mut encoded = String::from("EEEEEEEEEEEEEEEEEEEEEEE");
+        self.iter()
+            .for_each(|piece| {
+                let location = piece.location.to_enumeration_id();
+                let char_index = encoded.char_indices().nth(location as usize).unwrap().0;
+                encoded.replace_range(
+                    char_index..(char_index + 1),
+                    String::from(piece.owner.encode()).as_str()
+                );
+            });
+        encoded
+    }
+
     fn is_location_occupied(&self, location: &Location) -> bool {
         self.iter().any(|&piece| &piece.location == location)
     }
@@ -160,12 +177,13 @@ impl QueryableGameBoard for GameBoard {
         0.75 * stone_distr_fraction + 0.1 * moves_fraction.powi(2) + 0.05 * flight_bonus
     }
 
-    fn get_result_for(&self, team: &Team) -> i8 {
+    fn get_result_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> i8 {
         return if team.is_defeated(&self) {
             -1
+        } else if history.is_third_time(&self) {
+            0
         } else {
             1
         };
-        // TODO: Handle tie
     }
 }
