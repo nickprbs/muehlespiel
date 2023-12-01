@@ -29,7 +29,12 @@ impl Agent for MinimaxAgent {
 
 impl MinimaxAgent {
 
-    fn mini_max(&self, team_to_maximize: &Team, context: &GameContext, depth: u8, history: &impl GameBoardHistoryCounter) -> (Option<Turn>, f32) {
+    fn mini_max(&self,
+                team_to_maximize: &Team,
+                context: &GameContext,
+                depth: u8,
+                history: &impl GameBoardHistoryCounter
+    ) -> (Option<Turn>, f32) {
         return if depth == 0 {
             (None, context.board.get_evaluation_for(team_to_maximize))
         } else {
