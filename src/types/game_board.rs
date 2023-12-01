@@ -99,7 +99,7 @@ pub trait QueryableGameBoard {
 
 impl QueryableGameBoard for GameBoard {
     fn encode(&self) -> String {
-        let mut encoded = String::from("EEEEEEEEEEEEEEEEEEEEEEE");
+        let mut encoded = String::from("EEEEEEEEEEEEEEEEEEEEEEEE");
         self.iter()
             .for_each(|piece| {
                 let location = piece.location.to_enumeration_id();
