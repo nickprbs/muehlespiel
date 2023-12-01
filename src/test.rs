@@ -1,8 +1,14 @@
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use std::fs;
+    use fnv::FnvBuildHasher;
+    use crate::agents::Agent;
+    use crate::agents::minimax::MinimaxAgent;
     use crate::Location;
     use crate::modes::enumerate_actions_from_file;
+    use crate::types::{GameBoardHistoryCounter, GameBoardHistoryMap, GameContext};
+    use crate::types::game_board::QueryableGameBoard;
 
     #[test]
     fn test_enumeration_id_to_location() {
@@ -74,8 +80,14 @@ mod tests {
     }
 
     #[test]
-    fn test_enumerate_special_case() {
-        let case = "EEEEEEEEEWWWWWWWWEBBBBBE";
-
+    fn test_one_step_finishes() {
+        let empty_history: GameBoardHistoryMap = HashMap::with_hasher(FnvBuildHasher::default());
+        // White only needs to move piece at north middle on inner ring cw, to enclose opponent
+        let case = "M W EEEEEEEEEWWWWWWWWEBBBBBW";
+        let mut state = GameContext::from_encoding(case);
+        let actual_move = MinimaxAgent{}.get_next_turn(&state, &empty_history);
+        state.apply_unsafely(actual_move);
+        let expected_state = "EEEEEEEEEWWWWWWWEWBBBBBW";
+        assert_eq!(state.board.encode(), expected_state);
     }
 }
