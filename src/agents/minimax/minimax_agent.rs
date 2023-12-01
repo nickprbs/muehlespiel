@@ -72,7 +72,7 @@ impl MinimaxAgent {
                 .map(|(parent, (turn, grade))| (Some(parent), grade))
                 .unwrap_or(
                     // There's nothing we can do anymore
-                    (None, context.board.get_evaluation_for(team_to_maximize))
+                    (None, context.board.get_result_for(team_to_maximize, history) as f32)
                 )
         }
     }
