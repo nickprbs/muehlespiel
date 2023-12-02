@@ -16,6 +16,9 @@ pub fn ai_mode() {
         std::io::stdin().read_line(&mut input).expect("Failed to read line");
         let context = GameContext::from_encoding(input.as_str());
 
+        // Also add the previous turn
+        history.increment(&context.board);
+
         let next_turn = agent.get_next_turn(&context, &history);
 
         if next_turn.wants_to_take_piece() {
