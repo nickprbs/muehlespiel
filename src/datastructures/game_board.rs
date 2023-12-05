@@ -39,6 +39,10 @@ impl UsefulGameBoard for GameBoard {
     // TODO: get_equiv_class von Simon
 
     // TODO: is_equivalent_to von Simon
+    fn is_equivalent_to(&self, other: GameBoard) -> bool {
+        self.get_equivalence_class()
+            .any(|equal_board| equal_board == other)
+    }
 
     fn get_representative(&self) -> GameBoard {
         self.get_equivalence_class()
