@@ -1,6 +1,6 @@
 use crate::datastructures::Turn;
 
-use super::Encodable;
+use super::{Encodable, BoardEquivalenceClassIterator};
 
 pub type GameBoard = [u16; 3];
 
@@ -36,9 +36,12 @@ impl UsefulGameBoard for GameBoard {
 
     // TODO: flipped, rotated, mirrored von Nick und Jan
 
-    // TODO: get_equiv_class von Simon
+    fn get_equivalence_class(&self) -> Box<dyn Iterator<Item=GameBoard>> {
+        Box::new(
+            BoardEquivalenceClassIterator::new(*self)
+        )
+    }
 
-    // TODO: is_equivalent_to von Simon
     fn is_equivalent_to(&self, other: GameBoard) -> bool {
         self.get_equivalence_class()
             .any(|equal_board| equal_board == other)
