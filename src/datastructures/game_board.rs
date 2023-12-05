@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-type GameBoard = [u16; 3];
+pub type GameBoard = [u16; 3];
 
-trait UsefulGameBoard {
+pub trait UsefulGameBoard {
 
     fn apply(&self, turn: Turn) -> GameBoard;
     fn unapply(&self, turn: Turn) -> Iter<GameBoard>;
