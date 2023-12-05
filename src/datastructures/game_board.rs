@@ -1,5 +1,7 @@
 use crate::datastructures::Turn;
 
+use super::Encodable;
+
 pub type GameBoard = [u16; 3];
 
 pub trait UsefulGameBoard {
@@ -32,6 +34,12 @@ impl UsefulGameBoard for GameBoard {
         todo!()
     }
 
+    // TODO: flipped, rotated, mirrored von Nick und Jan
+
+    // TODO: get_equiv_class von Simon
+
+    // TODO: is_equivalent_to von Simon
+
     fn get_representative(&self) -> GameBoard {
         self.get_equivalence_class()
             .min_by(|board_a, board_b| {
@@ -39,4 +47,8 @@ impl UsefulGameBoard for GameBoard {
             })
             .expect("None found in equivalence class")
     }
+}
+
+impl Encodable for GameBoard {
+    // Nick
 }
