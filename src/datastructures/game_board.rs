@@ -34,9 +34,9 @@ impl UsefulGameBoard for GameBoard {
 
     fn get_representative(&self) -> GameBoard {
         self.get_equivalence_class()
-            .iter()
             .min_by(|board_a, board_b| {
                 todo!()
             })
+            .expect("None found in equivalence class")
     }
 }
