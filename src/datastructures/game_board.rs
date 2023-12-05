@@ -1,5 +1,3 @@
-use std::str::FromStr;
-use std::collections::Iter;
 use crate::datastructures::Turn;
 
 pub type GameBoard = [u16; 3];
@@ -7,14 +5,14 @@ pub type GameBoard = [u16; 3];
 pub trait UsefulGameBoard {
 
     fn apply(&self, turn: Turn) -> GameBoard;
-    fn unapply(&self, turn: Turn) -> Iter<GameBoard>;
+    fn unapply(&self, turn: Turn) -> Iterator<GameBoard>;
 
     fn flipped(&self) -> GameBoard;
     fn rotated(&self, increments: u8) -> GameBoard;
     fn mirrored(&self) -> GameBoard;
 
     // Get all 16 equivalent fields (including this one)
-    fn get_equivalence_class(&self) -> Iter<GameBoard>;
+    fn get_equivalence_class(&self) -> Iterator<GameBoard>;
 
     // Whether this board can be represented by the other through symmetries
     fn is_equivalent_to(&self, other: GameBoard) -> bool;
@@ -30,7 +28,7 @@ impl UsefulGameBoard for GameBoard {
         todo!()
     }
 
-    fn unapply(&self, turn: Turn) -> GameBoardIterator {
+    fn unapply(&self, turn: Turn) -> Iterator<GameBoard> {
         todo!()
     }
 
