@@ -1,19 +1,21 @@
 use super::{GameBoard, game_board::UsefulGameBoard};
 
 pub struct BoardEquivalenceClassIterator {
-    board: GameBoard,
-    flip: bool,
-    mirror: bool,
-    rotations: u8
+    board: Option<GameBoard>,
+    previous_board: Option<GameBoard>,
+    flipped: bool,
+    mirrored: bool,
+    rotated: u8
 }
 
 impl BoardEquivalenceClassIterator {
     pub fn new(board: GameBoard) -> Self {
         Self {
-            board,
-            flip: false,
-            mirror: false,
-            rotations: 0
+            board: Some(board),
+            previous_board: None,
+            flipped: false,
+            mirrored: false,
+            rotated: 0
         }
     }
 }
@@ -21,33 +23,41 @@ impl BoardEquivalenceClassIterator {
 impl Iterator for BoardEquivalenceClassIterator {
     type Item = GameBoard;
 
-    // TODO: Remember old board, so that we don't have to compute all actions, but only one at a time
     fn next(&mut self) -> Option<Self::Item> {
-        // Check if we already reached the end of all possible symmetries
-        if self.flip && self.mirror && self.rotations == 3 {
+        self.previous_board = self.board;
+
+        if let None = self.board {
             return None;
         }
 
-        // Assemble the new board
-        let board = self.board;
-        if self.flip {
-            board = board.flipped();
-        }
-        if self.mirror {
-            board = board.mirrored();
-        }
-        board = board.rotated(self.rotations);
-
-        // Increment the values
-        if self.rotations == 3 {
-            if self.flip { // When flip was true, we also had false => do with mirror now
-                self.mirror = true;
+        return match self.board {
+            None => None,
+            Some(board) => {
+                if self.flipped {
+                    if self.rotated == 3 {
+                        if self.mirrored {
+                            // We've reached the end of all possible symmetries
+                            self.board = None;
+                        } else {
+                            // Not mirrored
+                            self.board = Some(board.mirrored().flipped().rotated(1));
+                            self.mirrored = true;
+                            self.flipped = false;
+                            self.rotated = 0;
+                        }
+                    } else {
+                        // Not fully rotated
+                        self.board = Some(board.flipped().rotated(1));
+                        self.flipped = false;
+                        self.rotated += 1;
+                    }
+                } else {
+                    // Not flipped
+                    self.board = Some(board.flipped());
+                    self.flipped = true;
+                }
+                self.previous_board
             }
-            self.flip = !self.flip;
-        } else {
-            self.rotations = (self.rotations + 1) % 4;
         }
-
-        Some(board)
     }
 }
