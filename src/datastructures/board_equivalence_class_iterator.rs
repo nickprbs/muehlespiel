@@ -61,3 +61,15 @@ impl Iterator for BoardEquivalenceClassIterator {
         }
     }
 }
+
+#[test]
+fn test_equivalence_count() {
+    let board1: GameBoard = [0, 0, 0];
+    let count1 = BoardEquivalenceClassIterator::new(board1)
+        .count();
+    let board2: GameBoard = [0b0110001001100010, 0b0110001001100010, 0b1001001010100010];
+    let count2 = BoardEquivalenceClassIterator::new(board2)
+        .count();
+    assert_eq!(count1, 16);
+    assert_eq!(count2, 16);
+}
