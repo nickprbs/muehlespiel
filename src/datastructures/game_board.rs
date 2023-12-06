@@ -47,10 +47,18 @@ impl UsefulGameBoard for GameBoard {
             .any(|equal_board| equal_board == other)
     }
 
+    // Get an unique representative by pretending like we concatenated all three values of a game
+    // board. Then, compare those in the equivalence class and return the smallest by concatenated
+    // number.
     fn get_representative(&self) -> GameBoard {
         self.get_equivalence_class()
             .min_by(|board_a, board_b| {
-                todo!()
+                // Compare the two boards by first comparing their first ring, then second, then third
+                board_a[0].cmp(&board_b[0]).then(
+                    board_a[1].cmp(&board_b[1]).then(
+                        board_a[2].cmp(&board_b[2])
+                    )
+                )
             })
             .expect("None found in equivalence class")
     }
