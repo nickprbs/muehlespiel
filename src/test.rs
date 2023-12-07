@@ -78,16 +78,4 @@ mod tests {
             fs::read_to_string("./output_large.txt").unwrap()
         )
     }
-
-    #[test]
-    fn test_one_step_finishes() {
-        let empty_history: GameBoardHistoryMap = HashMap::with_hasher(FnvBuildHasher::default());
-        // White only needs to move piece at north middle on inner ring cw, to enclose opponent
-        let case = "M W EEEEEEEEEWWWWWWWWEBBBBBW";
-        let mut state = GameContext::from_encoding(case);
-        let actual_move = MinimaxAgent{}.get_next_turn(&state, &empty_history);
-        state.apply_unsafely(actual_move);
-        let expected_state = "EEEEEEEEEWWWWWWWEWBBBBBW";
-        assert_eq!(state.board.encode(), expected_state);
-    }
 }

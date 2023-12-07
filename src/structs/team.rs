@@ -1,5 +1,7 @@
+use crate::iterators::TurnIterator;
+use crate::structs::GamePhase::Moving;
 use crate::structs::Team::{Black, White};
-use crate::types::GameBoard;
+use crate::types::{GameBoard, GameContext};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Team {
@@ -42,7 +44,11 @@ impl Team {
     }
 
     pub fn is_defeated(&self, board: &GameBoard) -> bool {
-        self.count_pieces(board) <= 2
+        let cant_move = TurnIterator::new(&GameContext {
+            board: board.clone(), team: *self, phase: Moving
+        }, self.get_opponent()).count() == 0;
+
+        self.count_pieces(board) <= 2 || cant_move
     }
 
     pub fn get_opponent(&self) -> Team {

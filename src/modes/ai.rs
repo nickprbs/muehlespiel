@@ -27,6 +27,7 @@ pub fn ai_mode() {
         history.increment(&context.apply_unsafely_copied(next_turn).board);
 
         println!("{}", next_turn.encode());
+        eprintln!("Bewertung von gewählten Move: {}", &context.apply_unsafely_copied(next_turn).board.get_evaluation_for(&context.team, &history));
     }
 }
 

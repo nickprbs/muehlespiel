@@ -15,7 +15,6 @@ pub fn enumerate_actions_from_file() {
     let mut output: String = String::new();
 
     while let Some(game_board) = game_boards.next() {
-        //println!("{}", game_board);
         let board = GameBoard::from_encoding(game_board);
         //board.print();
         let context = GameContext {

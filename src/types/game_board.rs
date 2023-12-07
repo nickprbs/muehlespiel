@@ -92,7 +92,7 @@ pub trait QueryableGameBoard {
         }
     }
 
-    fn get_evaluation_for(&self, team: &Team) -> f32;
+    fn get_evaluation_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> f32;
 
     fn get_result_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> i8;
 }
@@ -151,19 +151,20 @@ impl QueryableGameBoard for GameBoard {
             .count() as u8
     }
 
-    fn get_evaluation_for(&self, team: &Team) -> f32 {
+    fn get_evaluation_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> f32 {
         // TODO: Make it more sophisticated
         let stone_count = self.count_pieces_of(team);
         let opponent_count = self.count_pieces_of(&team.get_opponent());
-        let can_fly = stone_count <= 3;
+        let can_i_fly = stone_count <= 3;
+        let can_opponent_fly = opponent_count <= 3;
 
         // Look at the number of stones
-        let stone_distribution = stone_count / opponent_count;
+        let stone_distribution = stone_count; // (opponent_count + 1);
         let stone_distr_fraction = stone_distribution as f32 / 9.0;
 
         // Determine whether we are close to being locked in place
         // Upper limit is the most moves we could possibly make
-        let upper_limit_of_moves = match can_fly {
+        let upper_limit_of_moves = match can_i_fly {
             true => stone_count * (TOTAL_NUMBER_FIELDS - stone_count - opponent_count),
             false => stone_count * 4, // four for the number of directions in which we could possibly move. Overestimates a lot.
         } as f32;
@@ -171,19 +172,27 @@ impl QueryableGameBoard for GameBoard {
             .count() as f32;
         let moves_fraction = actual_number_of_moves / upper_limit_of_moves;
 
+        let is_tie = history.is_third_time(&self);
+        let non_tie_factor = match is_tie {
+            true => 0.0,
+            false => 1.0
+        };
 
-        let flight_bonus = if can_fly { 1.0 } else { 0.0 };
 
-        0.75 * stone_distr_fraction + 0.1 * moves_fraction.powi(2) + 0.05 * flight_bonus
+        let flight_bonus = if can_i_fly { 1.0 } else { 0.0 };
+
+        non_tie_factor * (0.75 * stone_distr_fraction.powf(2.0) + 0.2 * (1.0 - flight_bonus) * moves_fraction + 0.05 * flight_bonus)
     }
 
     fn get_result_for(&self, team: &Team, history: &impl GameBoardHistoryCounter) -> i8 {
         return if team.is_defeated(&self) {
-            -1
+            1
         } else if history.is_third_time(&self) {
             0
+        } else if team.get_opponent().is_defeated(&self) {
+            -1
         } else {
-            1
+            panic!("We are not finished yet");
         };
     }
 }
