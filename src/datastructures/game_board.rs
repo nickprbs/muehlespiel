@@ -3,6 +3,7 @@ use crate::datastructures::Turn;
 use super::{Encodable, BoardEquivalenceClassIterator};
 
 pub type GameBoard = [u16; 3];
+pub type CanonicalGameBoard = GameBoard;
 
 pub trait UsefulGameBoard {
 
@@ -22,7 +23,7 @@ pub trait UsefulGameBoard {
     // Get a unique and constant game board that represents this game board's equivalence class (one of 16)
     // That representative is determined by comparing the gameboard arrays and getting the lowest one
     // (first comparing the number of the outer most ring, if equal: the middle, if equal: the inner)
-    fn get_representative(&self) -> GameBoard;
+    fn get_representative(&self) -> CanonicalGameBoard;
 }
 
 impl UsefulGameBoard for GameBoard {
