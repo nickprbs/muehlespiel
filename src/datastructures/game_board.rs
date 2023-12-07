@@ -51,7 +51,7 @@ impl UsefulGameBoard for GameBoard {
     // Get an unique representative by pretending like we concatenated all three values of a game
     // board. Then, compare those in the equivalence class and return the smallest by concatenated
     // number.
-    fn get_representative(&self) -> GameBoard {
+    fn get_representative(&self) -> CanonicalGameBoard {
         self.get_equivalence_class()
             .min_by(|board_a, board_b| {
                 // Compare the two boards by first comparing their first ring, then second, then third
