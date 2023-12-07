@@ -71,10 +71,84 @@ impl UsefulGameBoard for GameBoard {
             })
             .expect("None found in equivalence class")
     }
+
+    fn flipped(&self) -> GameBoard {
+        todo!()
+    }
+
+    fn rotated(&self, increments: u8) -> GameBoard {
+        todo!()
+    }
+
+    fn mirrored(&self) -> GameBoard {
+        todo!()
+    }
 }
 
 impl Encodable for GameBoard {
-    // Nick
+    //decodes a String into a 'game_board' type. Convention: 2bits per field: '00' <=> Empty, '01' <=> Black, '10' <=> White 
+    fn decode(string: String) -> Self {
+        let mut outter_ring: [u16; 16]  =[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let mut middle_ring: [u16; 16]  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let mut inner_ring: [u16; 16]   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let mut char_counter : u16 = 0; 
+        let curr_ring: &mut [u16; 1]; 
+        for single_char in string.chars() {
+            char_counter +=1;
+            if char_counter < 9 {
+                match single_char {
+                    'E' => {
+                        outter_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        outter_ring[((char_counter) % 8) as usize ] = 0;
+                    }
+                    'W' => {
+                        outter_ring[((char_counter-1) % 8) as usize ] = 1; 
+                        outter_ring[((char_counter-1) % 8) as usize ] = 0;
+                    }
+                    'B' => {
+                        outter_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        outter_ring[((char_counter-1) % 8) as usize ] = 1;
+                    }
+                    _ => {panic!("Error parsing String! Found invalid character");}
+                }
+            } else if char_counter >8 && char_counter < 17 {
+                match single_char {
+                    'E' => {
+                        middle_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        middle_ring[((char_counter) % 8) as usize ] = 0;
+                    }
+                    'W' => {
+                        middle_ring[((char_counter-1) % 8) as usize ] = 1; 
+                        middle_ring[((char_counter-1) % 8) as usize ] = 0;
+                    }
+                    'B' => {
+                        middle_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        middle_ring[((char_counter-1) % 8) as usize ] = 1;
+                    }
+                    _ => {panic!("Error parsing String! Found invalid character");}
+                }
+            } else {
+                match single_char {
+                    'E' => {
+                        inner_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        inner_ring[((char_counter) % 8) as usize ] = 0;
+                    }
+                    'W' => {
+                        inner_ring[((char_counter-1) % 8) as usize ] = 1; 
+                        inner_ring[((char_counter-1) % 8) as usize ] = 0;
+                    }
+                    'B' => {
+                        inner_ring[((char_counter-1) % 8) as usize ] = 0; 
+                        inner_ring[((char_counter-1) % 8) as usize ] = 1;
+                    }
+                    _ => {panic!("Error parsing String! Found invalid character");}
+                }
+            }
+            
+        }
+        [outter_ring[0], middle_ring[0], inner_ring[0]] 
+    }    
+    
 }
 
 #[test]
