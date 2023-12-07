@@ -68,3 +68,38 @@ impl UsefulGameBoard for GameBoard {
 impl Encodable for GameBoard {
     // Nick
 }
+
+#[test]
+fn test_decoding() {
+    let cases = [
+        (
+            "EEEEEEEEEEEEEEEEEEEEEEEE",
+            [
+                0b0000000000000000,
+                0b0000000000000000,
+                0b0000000000000000,
+            ]
+        ),
+        (
+            "WEWWBBEWEWBWWBWWEEBWBEWE",
+            [
+                0b1000101001010010,
+                0b0010011010011010,
+                0b0000011001001000,
+            ]
+        ),
+        (
+            "BEWBEWBEWBEWBEWBEWBEWBEW",
+            [
+                0b0100100100100100,
+                0b1001001001001001,
+                0b0010010010010010
+            ]
+        )
+    ];
+
+    cases.iter()
+        .for_each(|case| {
+            assert_eq!(case.1, GameBoard::decode(String::from(case.0)));
+        });
+}
