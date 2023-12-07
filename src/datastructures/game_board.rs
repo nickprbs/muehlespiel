@@ -1,9 +1,17 @@
+use std::mem::size_of;
 use crate::datastructures::Turn;
 
 use super::{Encodable, BoardEquivalenceClassIterator};
 
 pub type GameBoard = [u16; 3];
 pub type CanonicalGameBoard = GameBoard;
+
+#[test]
+fn test_data_structure_size() {
+    let size = size_of::<GameBoard>();
+    println!("Size of GameBoard: {}", size);
+    assert!(size <= 7); // Requirement in exercise sheet
+}
 
 pub trait UsefulGameBoard {
 
