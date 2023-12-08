@@ -88,67 +88,37 @@ impl UsefulGameBoard for GameBoard {
 impl Encodable for GameBoard {
     //decodes a String into a 'game_board' type. Convention: 2bits per field: '00' <=> Empty, '01' <=> Black, '10' <=> White 
     fn decode(string: String) -> Self {
-        let mut outter_ring: [u16; 16]  =[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        let mut middle_ring: [u16; 16]  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        let mut inner_ring: [u16; 16]   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        let mut char_counter : u16 = 0; 
-        let curr_ring: &mut [u16; 1]; 
+        let mut char_counter : u16 = 0;
+        let mut outter_ring_num : u16 = 0;
+        let mut middle_ring_num : u16 =0;
+        let mut inner_ring_num: u16 =0;  
+        let mut temp_ring_number : u16 = 0;
         for single_char in string.chars() {
-            char_counter +=1;
-            if char_counter < 9 {
-                match single_char {
-                    'E' => {
-                        outter_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        outter_ring[((char_counter) % 8) as usize ] = 0;
-                    }
-                    'W' => {
-                        outter_ring[((char_counter-1) % 8) as usize ] = 1; 
-                        outter_ring[((char_counter-1) % 8) as usize ] = 0;
-                    }
-                    'B' => {
-                        outter_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        outter_ring[((char_counter-1) % 8) as usize ] = 1;
-                    }
-                    _ => {panic!("Error parsing String! Found invalid character");}
-                }
-            } else if char_counter >8 && char_counter < 17 {
-                match single_char {
-                    'E' => {
-                        middle_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        middle_ring[((char_counter) % 8) as usize ] = 0;
-                    }
-                    'W' => {
-                        middle_ring[((char_counter-1) % 8) as usize ] = 1; 
-                        middle_ring[((char_counter-1) % 8) as usize ] = 0;
-                    }
-                    'B' => {
-                        middle_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        middle_ring[((char_counter-1) % 8) as usize ] = 1;
-                    }
-                    _ => {panic!("Error parsing String! Found invalid character");}
-                }
-            } else {
-                match single_char {
-                    'E' => {
-                        inner_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        inner_ring[((char_counter) % 8) as usize ] = 0;
-                    }
-                    'W' => {
-                        inner_ring[((char_counter-1) % 8) as usize ] = 1; 
-                        inner_ring[((char_counter-1) % 8) as usize ] = 0;
-                    }
-                    'B' => {
-                        inner_ring[((char_counter-1) % 8) as usize ] = 0; 
-                        inner_ring[((char_counter-1) % 8) as usize ] = 1;
-                    }
-                    _ => {panic!("Error parsing String! Found invalid character");}
-                }
-            }
             
+            let current_exponent: u16 = 14- (char_counter % 8)*2;  
+            let mut lower_bit: u16 = 0;
+            let mut higher_bit: u16 =0;
+            match single_char {
+                'E' => {}
+                'W' => {higher_bit = 1;}
+                'B' => {lower_bit = 1;}
+                _ => {panic!("Error parsing String: Invalid Token found.");}
+            }
+            if char_counter < 8 {
+                outter_ring_num += lower_bit*2_u16.pow(current_exponent as u32) + higher_bit*2_u16.pow((current_exponent+1) as u32);
+            } else if char_counter >= 8 && char_counter < 16 {
+                middle_ring_num += lower_bit*2_u16.pow(current_exponent as u32) + higher_bit*2_u16.pow((current_exponent+1) as u32);
+            } else if char_counter >= 16 && char_counter< 24 {
+                inner_ring_num += lower_bit*2_u16.pow(current_exponent as u32) + higher_bit*2_u16.pow((current_exponent+1) as u32);
+            } else {panic!("Invalid Format! String has to be 24 characters long!");}
+            char_counter +=1;
         }
-        [outter_ring[0], middle_ring[0], inner_ring[0]] 
+        [outter_ring_num, middle_ring_num, inner_ring_num]
     }    
     
+    fn encode(&self) -> String {
+        todo!()
+    }
 }
 
 #[test]
