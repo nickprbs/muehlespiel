@@ -35,11 +35,11 @@ pub trait UsefulGameBoard {
 }
 
 impl UsefulGameBoard for GameBoard {
-    fn apply(&self, turn: Turn) -> GameBoard {
+    fn apply(&self, _turn: Turn) -> GameBoard {
         todo!()
     }
 
-    fn unapply(&self, turn: Turn) -> Box<dyn Iterator<Item=GameBoard>> {
+    fn unapply(&self, _turn: Turn) -> Box<dyn Iterator<Item=GameBoard>> {
         todo!()
     }
 
@@ -76,7 +76,7 @@ impl UsefulGameBoard for GameBoard {
         todo!()
     }
 
-    fn rotated(&self, increments: u8) -> GameBoard {
+    fn rotated(&self, _increments: u8) -> GameBoard {
         todo!()
     }
 
@@ -91,8 +91,7 @@ impl Encodable for GameBoard {
         let mut char_counter : u16 = 0;
         let mut outter_ring_num : u16 = 0;
         let mut middle_ring_num : u16 =0;
-        let mut inner_ring_num: u16 =0;  
-        let mut temp_ring_number : u16 = 0;
+        let mut inner_ring_num: u16 =0; 
         for single_char in string.chars() {
             
             let current_exponent: u16 = 14- (char_counter % 8)*2;  
@@ -117,7 +116,24 @@ impl Encodable for GameBoard {
     }    
     
     fn encode(&self) -> String {
-        todo!()
+        let whole_num: String =format!("{:016b}{:016b}{:016b}", self[0], self[1],self[2]);
+        let mut output: String = String::new();
+        for i in 0..24 {
+            let higher_bit: char = whole_num.chars().nth(2*i).unwrap();
+            let lower_bit: char =whole_num.chars().nth(2*i+1).unwrap();
+            let field_char: char;
+            if higher_bit == '0' && lower_bit == '0' {
+                 field_char = 'E';
+            } else if higher_bit == '0' && lower_bit == '1' {
+                 field_char = 'B';
+            } else if higher_bit == '1' && lower_bit == '0' {
+                 field_char = 'W';
+            } else {
+                panic!("Error encoding Gameboard: Invalid binary representation found!");
+            }
+            output = output + &field_char.to_string();
+        }
+        output
     }
 }
 
@@ -153,5 +169,39 @@ fn test_decoding() {
     cases.iter()
         .for_each(|case| {
             assert_eq!(case.1, GameBoard::decode(String::from(case.0)));
+        });
+}
+
+#[test]
+fn test_encoding(){
+    let cases = [
+        (
+            "EEEEEEEEEEEEEEEEEEEEEEEE",
+            [
+                0b0000000000000000,
+                0b0000000000000000,
+                0b0000000000000000,
+            ]
+        ),
+        (
+            "WEWWBBEWEWBWWBWWEEBWBEWE",
+            [
+                0b1000101001010010,
+                0b0010011010011010,
+                0b0000011001001000,
+            ]
+        ),
+        (
+            "BEWBEWBEWBEWBEWBEWBEWBEW",
+            [
+                0b0100100100100100,
+                0b1001001001001001,
+                0b0010010010010010
+            ]
+        )
+    ];
+    cases.iter()
+        .for_each(|case| {
+            assert_eq!(String::from(case.0), GameBoard::encode(&case.1));
         });
 }
