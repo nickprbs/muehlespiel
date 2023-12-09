@@ -1,6 +1,6 @@
 mod board_equivalence_class_iterator;
 mod encodable;
-mod game_board;
+pub(crate) mod game_board;
 mod turn;
 
 pub use crate::datastructures::{
