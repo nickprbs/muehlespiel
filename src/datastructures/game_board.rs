@@ -71,17 +71,49 @@ impl UsefulGameBoard for GameBoard {
             })
             .expect("None found in equivalence class")
     }
-
+    // swaps inner and outer ring 
     fn flipped(&self) -> GameBoard {
-        todo!()
+        let mut output = self.clone();
+        output.swap(0, 2);
+        output 
     }
-
+    // rotates 90° clockwise times '_increments' 
     fn rotated(&self, _increments: u8) -> GameBoard {
-        todo!()
+           let mut output = self.clone();  
+        let iterations = _increments % 4; 
+        for _i in 1..=iterations{
+            let old_board = output;
+            let mut counter=0;
+            for elem in old_board{
+                output[counter]=(elem >> 4) | (elem << (16 - 4));
+                counter +=1
+            }
+        }
+        output
     }
-
+    // performs a mirroring with the 90° mirror-axis. 
     fn mirrored(&self) -> GameBoard {
-        todo!()
+        let old_num = self.clone(); 
+        let mut output: [u16 ; 3] = [0, 0, 0 ];
+        for i in 0..3 {
+            let temp_old_num: u16 = old_num[i]; 
+            let mut output_num: u16 =0;
+            for j in 0..8 {
+                let higher_bitmask = temp_old_num & 2_u16.pow(15-2*j); 
+                let lower_bitmask: u16 = temp_old_num & 2_u16.pow(15-(2*j+1));
+                let higher_bit: u16 = higher_bitmask.count_ones() as u16; 
+                let lower_bit: u16 = lower_bitmask.count_ones() as u16; 
+                if j == 0 {
+                    output_num += higher_bitmask + lower_bitmask; 
+                } else if j == 4 {
+                    output_num += higher_bitmask + lower_bitmask; 
+                } else {
+                    output_num += higher_bit * 2_u16.pow(2*j-1) + lower_bit* 2_u16.pow(2*j-2);
+                }
+            }
+            output[i]=output_num;
+        }
+        output 
     }
 }
 
@@ -204,4 +236,64 @@ fn test_encoding(){
         .for_each(|case| {
             assert_eq!(String::from(case.0), GameBoard::encode(&case.1));
         });
+}
+
+#[test]
+fn test_mirroring() {
+    let _case0 =        [
+                0b0000000000000000,
+                0b0000000000000000,
+                0b0000000000000000
+            ];
+    let _case1 =             [
+        0b1000101001010010,
+        0b0010011010011010,
+        0b0000011001001000
+    ];
+
+    let _case2 =             [
+        0b0100100100100100,
+        0b1001001001001001,
+        0b0010010010010010
+    ];
+
+    assert_eq!(_case0.mirrored() , [0b0000000000000000,0b0000000000000000,0b0000000000000000]);
+    assert_eq!(_case1.mirrored(), [0b1010000101101000,0b0010100110100110,0b0000100001100100]);
+    assert_eq!(_case2.mirrored(), [0b0100011000011000,0b1001100001100001, 0b0010000110000110]);
+
+}
+
+#[test]
+fn test_rotating() {
+    let _case0 =[
+                0b0000000000000000,
+                0b0000000000000000,
+                0b0000000000000000
+            ];
+    let _case1 =[
+        0b1000101001010010,
+        0b0010011010011010,
+        0b0000011001001000
+    ];
+
+    let _case2 =             [
+        0b0100100100100100,
+        0b1001001001001001,
+        0b0010010010010010
+    ];
+    assert_eq!(_case0.rotated(1) , [0b0000000000000000,0b0000000000000000,0b0000000000000000]);
+    assert_eq!(_case1.rotated(1), [0b0010100010100101, 0b1010001001101001, 0b1000000001100100]);
+    assert_eq!(_case2.rotated(1), [0b0100010010010010, 0b1001100100100100, 0b0010001001001001]);
+
+    assert_eq!(_case0.rotated(2) , [0b0000000000000000,0b0000000000000000,0b0000000000000000]);
+    assert_eq!(_case1.rotated(2), [0b0101001010001010, 0b1001101000100110, 0b0100100000000110]);
+    assert_eq!(_case2.rotated(2), [0b0010010001001001, 0b0100100110010010, 0b1001001000100100]);
+
+    assert_eq!(_case0.rotated(3) , [0b0000000000000000,0b0000000000000000,0b0000000000000000]);
+    assert_eq!(_case1.rotated(3), [0b1010010100101000, 0b0110100110100010, 0b0110010010000000]);
+    assert_eq!(_case2.rotated(3), [0b1001001001000100, 0b0010010010011001, 0b0100100100100010]);
+
+    assert_eq!(_case0.rotated(4) , _case0); 
+    assert_eq!(_case1.rotated(4), _case1);
+    assert_eq!(_case2.rotated(4), _case2 );
 }
