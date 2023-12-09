@@ -7,8 +7,8 @@ use crate::datastructures::game_board::UsefulGameBoard;
 fn main() -> Result<(), Error>{
 
   let project_directory = env::current_dir()?;
-  let input_file_path = project_directory.parent().unwrap().join("input_felder.txt");
-  let output_file_path = project_directory.parent().unwrap().join("output.txt");
+  let input_file_path = project_directory.join("input_felder.txt");
+  let output_file_path = project_directory.join("output.txt");
     
   let input_file = File::open(&input_file_path)?;
   let file_reader = BufReader::new(input_file);
