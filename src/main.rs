@@ -1,4 +1,6 @@
 mod datastructures;
+mod iterators;
+
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};

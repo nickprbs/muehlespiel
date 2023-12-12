@@ -1,4 +1,5 @@
-use super::{GameBoard, game_board::UsefulGameBoard};
+use crate::datastructures::game_board::UsefulGameBoard;
+use crate::datastructures::GameBoard;
 
 pub struct BoardEquivalenceClassIterator {
     board: Option<GameBoard>,

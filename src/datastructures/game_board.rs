@@ -1,6 +1,7 @@
 use std::mem::size_of;
-use crate::datastructures::Turn;
-use super::{Encodable, BoardEquivalenceClassIterator};
+use super::Turn;
+use crate::iterators::BoardEquivalenceClassIterator;
+use super::Encodable;
 
 pub type GameBoard = [u16; 3];
 pub type CanonicalGameBoard = GameBoard;
