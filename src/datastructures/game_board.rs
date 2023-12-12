@@ -52,14 +52,14 @@ impl UsefulGameBoard for GameBoard {
 
     // rotates 90° clockwise times 'increments'
     fn rotated(&self, increments: u8) -> GameBoard {
-       let mut output = self.clone();
+        let mut output = self.clone();
         let iterations = increments % 4;
         for _i in 1..=iterations {
             let old_board = output;
-            let mut counter=0;
-            for elem in old_board{
+            let mut counter = 0;
+            for elem in old_board {
                 output[counter] = (elem >> 4) | (elem << (16 - 4));
-                counter +=1
+                counter += 1;
             }
         }
         output
