@@ -1,6 +1,7 @@
 use std::mem::size_of;
 use crate::datastructures::Turn;
 use super::{Encodable, BoardEquivalenceClassIterator};
+
 pub type GameBoard = [u16; 3];
 pub type CanonicalGameBoard = GameBoard;
 
@@ -69,7 +70,7 @@ impl UsefulGameBoard for GameBoard {
         let mut output: [u16; 3] = [0, 0, 0];
         for i in 0..3 {
             let temp_old_num: u16 = old_num[i];
-            let mut output_num: u16 =0;
+            let mut output_num: u16 = 0;
             for j in 0..8 {
                 let higher_bitmask = temp_old_num & 2_u16.pow(15-2*j);
                 let lower_bitmask: u16 = temp_old_num & 2_u16.pow(15-(2*j+1));
@@ -80,7 +81,7 @@ impl UsefulGameBoard for GameBoard {
                 } else if j == 4 {
                     output_num += higher_bitmask + lower_bitmask;
                 } else {
-                    output_num += higher_bit * 2_u16.pow(2*j-1) + lower_bit* 2_u16.pow(2*j-2);
+                    output_num += higher_bit * 2_u16.pow(2*j-1) + lower_bit * 2_u16.pow(2*j-2);
                 }
             }
             output[i] = output_num;
@@ -118,11 +119,11 @@ impl UsefulGameBoard for GameBoard {
 
 impl Encodable for GameBoard {
     fn encode(&self) -> String {
-        let whole_num: String =format!("{:016b}{:016b}{:016b}", self[0], self[1],self[2]);
+        let whole_num: String = format!("{:016b}{:016b}{:016b}", self[0], self[1],self[2]);
         let mut output: String = String::new();
         for i in 0..24 {
             let higher_bit: char = whole_num.chars().nth(2*i).unwrap();
-            let lower_bit: char =whole_num.chars().nth(2*i+1).unwrap();
+            let lower_bit: char = whole_num.chars().nth(2*i+1).unwrap();
             let field_char: char;
             if higher_bit == '0' && lower_bit == '0' {
                  field_char = 'E';
@@ -281,6 +282,7 @@ fn test_rotating() {
         0b1001001001001001,
         0b0010010010010010
     ];
+
     assert_eq!(case0.rotated(1), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
     assert_eq!(case1.rotated(1), [0b0010100010100101, 0b1010001001101001, 0b1000000001100100]);
     assert_eq!(case2.rotated(1), [0b0100010010010010, 0b1001100100100100, 0b0010001001001001]);
