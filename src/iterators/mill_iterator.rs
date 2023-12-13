@@ -17,17 +17,17 @@ impl MillIterator {
 }
 
 impl Iterator for MillIterator {
-    type Item = (Location, Location, Location);
+    type Item = [Location; 3];
 
     fn next(&mut self) -> Option<Self::Item> {
         let enumerate_angles = self.current_angle <= 3;
         if enumerate_angles {
             // Enumerate mills along the leading lines of the board
-            let result = (
+            let result = [
                 self.current_angle,
                 self.current_angle + 8,
                 self.current_angle + 16
-            );
+            ];
             self.current_angle += 1;
             return Some(result);
         } else {
