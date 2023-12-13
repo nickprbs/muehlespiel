@@ -35,23 +35,28 @@ impl Iterator for MillIterator {
             self.current_angle += 1;
             Some(result)
         } else {
+            // We're done
+            if self.current_ring == 3 {
+                return None;
+            }
+            
             // Enumerate mills along the rings
-            let center_location = self.current_ring * 8 + self.current_side * 2 + 1;
+            let center_location = (self.current_ring * 8) + (self.current_side * 2) + 1;
             let result = [
                 center_location.add_wrapping_in_ring(-1),
                 center_location,
                 center_location.add_wrapping_in_ring(1),
             ];
+            
+            println!("Ring: {}, side: {}", self.current_ring, self.current_side);
 
-            if self.current_side <= 3 {
+            if self.current_side < 3 {
                 // Enumerate mills along this ring, but at a new side
                 self.current_side += 1;
-            } else if self.current_ring <= 2 {
+            } else {
                 // Go to a new ring
                 self.current_ring += 1;
                 self.current_side = 0;
-            } else {
-                return None;
             }
 
             Some(result)
@@ -66,6 +71,7 @@ fn test_mill_iterator() {
         [8, 1, 2], [14, 15, 16], [24, 17, 18]
     ];
     let actual_all_mills: Vec<[Location; 3]> = MillIterator::new().collect();
+    println!("{:?}", actual_all_mills);
     for sample in expected_samples {
         assert!(actual_all_mills.contains(&sample));
     }
