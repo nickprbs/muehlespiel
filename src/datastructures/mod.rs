@@ -11,5 +11,6 @@ pub use crate::datastructures::{
     team::Team as Team,
     turn::Turn as Turn,
     location::Location as Location,
-    piece::Piece as Piece
+    location::GameBoardLocation as GameBoardLocation,
+    piece::Piece as Piece,
 };
