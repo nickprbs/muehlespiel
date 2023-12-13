@@ -6,7 +6,7 @@ pub struct LocationIterator {
 }
 
 impl LocationIterator {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             current_field_number: 1,
             forbidden_fields: vec![]
