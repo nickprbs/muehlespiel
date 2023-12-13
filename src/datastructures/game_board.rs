@@ -1,4 +1,5 @@
 use std::mem::size_of;
+use crate::datastructures::piece::Piece;
 use super::Turn;
 use crate::iterators::BoardEquivalenceClassIterator;
 use super::Encodable;
@@ -14,6 +15,8 @@ fn test_data_structure_size() {
 }
 
 pub trait UsefulGameBoard {
+    
+    fn from_pieces(pieces: Vec<Piece>) -> Self;
 
     fn apply(&self, turn: Turn) -> GameBoard;
     fn unapply(&self, turn: Turn) -> Box<dyn Iterator<Item=GameBoard>>;
@@ -35,6 +38,11 @@ pub trait UsefulGameBoard {
 }
 
 impl UsefulGameBoard for GameBoard {
+    
+    fn from_pieces(pieces: Vec<Piece>) -> Self {
+        todo!()
+    }
+    
     fn apply(&self, _turn: Turn) -> GameBoard {
         todo!()
     }

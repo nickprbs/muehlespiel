@@ -4,7 +4,9 @@ mod iterators;
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
+use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
+use crate::iterators::LostPositionsByPiecesTakenIterator;
 
 fn main() -> Result<(), Error>{
     let project_directory = env::current_dir()?;
@@ -29,4 +31,14 @@ fn main() -> Result<(), Error>{
     }
 
     Ok(())
+}
+
+fn enumerate_lost_positions() {
+    let canonicals: HashSet<CanonicalGameBoard> = HashSet::new();
+    
+    let iterator = LostPositionsByPiecesTakenIterator::new();
+    
+    iterator.for_each(|element| {
+        teste ob kanonische variante von element schon in canonicals ist, wenn nein füge hinzu
+    })
 }
