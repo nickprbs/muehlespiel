@@ -1,5 +1,4 @@
 use std::mem::size_of;
-use crate::datastructures::piece::Piece;
 use super::{Location, Turn};
 use crate::iterators::BoardEquivalenceClassIterator;
 use super::Encodable;
