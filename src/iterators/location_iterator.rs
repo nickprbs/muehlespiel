@@ -47,4 +47,11 @@ fn test_location_iterator() {
     let actual: Vec<Location> = LocationIterator::new().collect();
     let expected: Vec<u8> = (1..=24).collect();
     assert_eq!(actual, expected);
+
+    let forbidden = vec![1, 5, 8, 9, 10, 24];
+    let actual: Vec<Location> = LocationIterator::with_forbidden(forbidden.clone()).collect();
+    let expected: Vec<Location> = (1..=24)
+        .filter(|loc| !forbidden.contains(loc))
+        .collect();
+    assert_eq!(actual, expected);
 }
