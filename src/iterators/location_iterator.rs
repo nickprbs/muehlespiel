@@ -22,7 +22,7 @@ impl LocationIterator {
 }
 
 impl Iterator for LocationIterator {
-    type Item = u8;
+    type Item = Location;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current_field_number <= 24 {
@@ -40,4 +40,11 @@ impl Iterator for LocationIterator {
             None
         }
     }
+}
+
+#[test]
+fn test_location_iterator() {
+    let actual: Vec<Location> = LocationIterator::new().collect();
+    let expected: Vec<u8> = (1..=24).collect();
+    assert_eq!(actual, expected);
 }
