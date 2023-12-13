@@ -20,7 +20,7 @@ impl GameBoardLocation for Location {
             counting_down -= 8;
         }
 
-        (((self_normed_to_zero as i16 + value_to_add) % 8) + ring * 8 + 1) as Location
+        (((self_normed_to_zero as i16 + value_to_add).rem_euclid(8)) + ring * 8 + 1) as Location
     }
 }
 
@@ -28,6 +28,10 @@ impl GameBoardLocation for Location {
 fn test_location_wrapping() {
     let expected: Location = 1;
     let actual = 8.add_wrapping_in_ring(1);
+    assert_eq!(expected, actual);
+
+    let expected: Location = 8;
+    let actual = 1.add_wrapping_in_ring(-1);
     assert_eq!(expected, actual);
 
     let expected: Location = 24;
