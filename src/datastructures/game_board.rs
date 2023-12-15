@@ -136,6 +136,19 @@ impl UsefulGameBoard for GameBoard {
     }
 }
 
+#[test]
+fn test_game_board_from_pieces() {
+    let black_pieces = vec![1,2, 3, 7, 10];
+    let white_pieces = vec![4, 24, 23, 9];
+    let expected_game_board = [
+        0b0101011000000100,
+        0b1001000000000000,
+        0b0000000000001010
+    ];
+    let actual_game_board = GameBoard::from_pieces(black_pieces, white_pieces);
+    assert_eq!(expected_game_board, actual_game_board);
+}
+
 impl Encodable for GameBoard {
     fn encode(&self) -> String {
         let whole_num: String = format!("{:016b}{:016b}{:016b}", self[0], self[1],self[2]);
