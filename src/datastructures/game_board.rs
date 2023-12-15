@@ -47,7 +47,7 @@ impl UsefulGameBoard for GameBoard {
         }
         for location_white in white_locations {
             let ring = (location_white as f32 / 8.0).floor() as usize; 
-            let higher_bit = 1*2_u16.pow(17-(2*location_white as u32));
+            let higher_bit = 1*2_u16.pow(16-(2*location_white as u32)+1);
             output[ring] = output[ring] | higher_bit;
         }
         output 
