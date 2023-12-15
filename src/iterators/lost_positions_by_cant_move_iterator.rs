@@ -46,7 +46,7 @@ impl Iterator for LostPositionsByCantMoveIterator {
                 let neighbours: Vec<Location> = NeighboursIterator::new(our_next_locations)
                     .unique()
                     .collect();
-                let max_left_opponent_pieces: i8 = 9_i8 - neighbours.len();
+                let max_left_opponent_pieces: i8 = 9_i8 - neighbours.len() as i8;
 
                 if max_left_opponent_pieces < 0 {
                     // Opponent does not have enough pieces to lock us. Skip this config.
