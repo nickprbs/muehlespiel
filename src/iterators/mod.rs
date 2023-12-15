@@ -1,5 +1,4 @@
 mod board_equivalence_class_iterator;
-mod lost_positions_iterator;
 mod location_iterator;
 mod mill_iterator;
 mod lost_positions_by_pieces_taken_iterator;

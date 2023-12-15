@@ -7,7 +7,6 @@ use crate::producer::lost_positions::lost_positions_by_pieces_taken;
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
-use iterators::LostPositionsByCantMoveIterator;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
 use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
