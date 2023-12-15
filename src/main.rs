@@ -1,5 +1,7 @@
 mod datastructures;
 mod iterators;
+use fnv::{FnvHashMap, FnvHashSet};
+
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
@@ -9,7 +11,11 @@ use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::iterators::LostPositionsByPiecesTakenIterator;
 
-fn main() -> Result<(), Error>{
+fn main() {
+    let loosing_team:Team=Team::BLACK;
+    println!("{}, {}",enumerate_lost_positions(loosing_team).0, enumerate_lost_positions(loosing_team).1);
+}
+fn past_main()-> Result<(), Error>{
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
     let output_file_path = project_directory.join("output.txt");
@@ -35,14 +41,14 @@ fn main() -> Result<(), Error>{
 }
 
 fn enumerate_lost_positions(loosing_team:Team) ->(u64,u64) {
-    let mut canonicals: HashSet<CanonicalGameBoard> = HashSet::new();
+    let mut canonicals=FnvHashSet::default();
     
     let iterator_lost_piece = LostPositionsByPiecesTakenIterator::new(loosing_team.clone());
     let iterator_lost_move = LostPositionsByCantMoveIterator::new(loosing_team.clone());
     let mut counter_lost_piece:u64=0;
     let mut counter_lost_move:u64=0;
     iterator_lost_piece.for_each(|board| {
-        counter_lost_move+=1;
+        counter_lost_piece+=1;
         let temp_repres=board.get_representative();
         canonicals.insert(temp_repres);
     });
