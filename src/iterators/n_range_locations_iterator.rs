@@ -1,14 +1,13 @@
 use crate::datastructures::Location;
 use itertools::Itertools;
 
-
 pub struct NLocationsIterator {
     permutations_iterator: Box<dyn Iterator<Item=Vec<Location>>>
 }
 impl NLocationsIterator {
     fn new(n: usize, free_fields: Vec<Location>) -> Self {
         Self {
-            permutations_iterator: Box::new(free_fields.into_iter().permutations(n).into_iter())
+            permutations_iterator: Box::new(free_fields.into_iter().combinations(n).into_iter())
         }
     }
 }
@@ -29,12 +28,12 @@ fn text_n_locations_iterator() {
     assert_eq!(expected_locations, actual_locations);
 
     // n = 2
-    let expected_count = 24 * 23;
+    let expected_count = 276;
     let actual_count = NLocationsIterator::new(2, all_free_fields.clone()).count();
     assert_eq!(expected_count, actual_count);
 
     // n = 5
-    let expected_count = 24 * 23 * 22 * 21 * 20;
+    let expected_count = 42504;
     let actual_count = NLocationsIterator::new(5, all_free_fields.clone()).count();
     assert_eq!(expected_count, actual_count);
 }
@@ -83,7 +82,7 @@ impl Iterator for NRangeLocationsIterator {
 }
 
 #[test]
-fn test_n_erange_locations_iterator() {
+fn test_n_range_locations_iterator() {
     let all_free_fields: Vec<Location> = (1..=24).collect();
 
     // n = 1
@@ -92,12 +91,12 @@ fn test_n_erange_locations_iterator() {
     assert_eq!(expected, actual);
 
     // 1 <= n <= 2
-    let expected_count = 24 + 24 * 23;
+    let expected_count = 24 + 276;
     let actual_count = NRangeLocationsIterator::new(1, 2, all_free_fields.clone()).count();
     assert_eq!(expected_count, actual_count);
 
-    // 2 <= n <= 5
-    let expected_count = 24 * 23 + 24 * 23 * 22 + 24 * 23 * 22 * 21 + 24 * 23 * 22 * 21 * 20;
-    let actual_count = NRangeLocationsIterator::new(2, 5, all_free_fields.clone()).count();
+    // 2 <= n <= 9
+    let expected_count = 276 + 2024 + 10626 + 42504 + 134596 + 346104 + 735471 + 1307504;
+    let actual_count = NRangeLocationsIterator::new(2, 9, all_free_fields.clone()).count();
     assert_eq!(expected_count, actual_count);
 }
