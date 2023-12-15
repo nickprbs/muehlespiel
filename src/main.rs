@@ -1,7 +1,9 @@
 mod datastructures;
 mod iterators;
 use fnv::{FnvHashMap, FnvHashSet};
-
+mod producer;
+use crate::producer::lost_positions::lost_positions_by_cant_move;
+use crate::producer::lost_positions::lost_positions_by_pieces_taken;
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
@@ -40,23 +42,10 @@ fn past_main()-> Result<(), Error>{
     Ok(())
 }
 
-fn enumerate_lost_positions(loosing_team:Team) ->(u64,u64) {
+fn enumerate_lost_positions(loosing_team:Team) ->u64 {
     let mut canonicals=FnvHashSet::default();
-    
-    let iterator_lost_piece = LostPositionsByPiecesTakenIterator::new(loosing_team.clone());
-    let iterator_lost_move = LostPositionsByCantMoveIterator::new(loosing_team.clone());
-    let mut counter_lost_piece:u64=0;
-    let mut counter_lost_move:u64=0;
-    iterator_lost_piece.for_each(|board| {
-        counter_lost_piece+=1;
-        let temp_repres=board.get_representative();
-        canonicals.insert(temp_repres);
-    });
-    iterator_lost_move.for_each(|board| {
-        counter_lost_move+=1;
-        let temp_repres=board.get_representative();
-        canonicals.insert(temp_repres);
-    });
-    let mut _result=(counter_lost_move,counter_lost_piece);
+    let hash_lost_piece = lost_positions_by_cant_move(loosing_team.clone());
+    let hash_lost_move = lost_positions_by_pieces_taken(loosing_team.clone());
+    let mut _result:u64=hash_lost_move.len() as u64 + hash_lost_piece.len() as u64;
     _result
 }
