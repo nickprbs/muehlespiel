@@ -38,7 +38,6 @@ impl Iterator for NeighboursIterator {
             None => {
                 self.current_location = self.locations_iter.next();
                 self.neighbour_directions = Box::new(Direction::iter());
-                println!("New origin: {:?}", self.current_location);
                 match self.current_location {
                     None => None,
                     Some(_) => self.next(),
@@ -46,7 +45,6 @@ impl Iterator for NeighboursIterator {
             },
             Some(neighbour_direction) => {
                 let mut neighbour_location = self.current_location?.apply_direction(neighbour_direction);
-                println!("Neighbour location: {:?}", neighbour_location);
 
                 return match neighbour_location {
                     None => {

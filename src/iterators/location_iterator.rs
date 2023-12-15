@@ -13,7 +13,7 @@ impl LocationIterator {
         }
     }
 
-    fn with_forbidden(forbidden_fields: Vec<Location>) -> Self {
+    pub(crate) fn with_forbidden(forbidden_fields: Vec<Location>) -> Self {
         Self {
             current_field_number: 1,
             forbidden_fields
