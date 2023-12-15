@@ -3,6 +3,7 @@ pub(crate) mod game_board;
 mod turn;
 mod team;
 mod location;
+mod direction;
 
 pub use crate::datastructures::{
     encodable::Encodable as Encodable,
@@ -11,4 +12,5 @@ pub use crate::datastructures::{
     turn::Turn as Turn,
     location::Location as Location,
     location::GameBoardLocation as GameBoardLocation,
+    direction::Direction as Direction
 };

@@ -19,7 +19,7 @@ impl LostPositionsIterator {
                 piece_b_iterator: todo!(),
                 winner_mill_iterator: todo!(),
             },
-            lost_by_cant_move_iterator: LostPositionsByCantMoveIterator { loosing_team },
+            lost_by_cant_move_iterator: LostPositionsByCantMoveIterator::new(loosing_team),
             is_first_iterator_done: false
         }
     }
