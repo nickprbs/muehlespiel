@@ -42,16 +42,23 @@ impl UsefulGameBoard for GameBoard {
         let mut output : GameBoard = [0,0,0];
         for location_black in black_locations {
             let ring = (location_black as f32 / 8.0).floor() as usize; 
-            let lower_bit = 1*2_u16.pow(16-(2*(location_black %8) as u32));
-            output[ring] = output[ring] | lower_bit;  
+            let mut lower_bit = 2_u16.pow(0); 
+            if location_black % 8 != 0 {
+                 lower_bit = 1*2_u16.pow(16-(2*(location_black %8) as u32));
+            }
+            output[ring] = output[ring] | lower_bit; 
         }
         for location_white in white_locations {
-            let ring = (location_white as f32 / 8.0).floor() as usize; 
-            let higher_bit = 1*2_u16.pow(16-(2*(location_white%8) as u32)+1);
-            output[ring] = output[ring] | higher_bit;
-        }
-        output 
+            let ring = (location_white as f32 / 8.0).floor() as usize;
+            let mut higher_bit = 2_u16.pow(1); 
+            if location_white % 8 != 0 {
+                 higher_bit = 1*2_u16.pow((16-(2*(location_white %8))+1) as u32);
+            }
+            output[ring] = output[ring] | higher_bit; 
+        } 
+        output
     }
+
     
     fn apply(&self, _turn: Turn) -> GameBoard {
         todo!()
