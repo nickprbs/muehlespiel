@@ -3,6 +3,7 @@ mod iterators;
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
+use iterators::LostPositionsByCantMoveIterator;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
 use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
@@ -33,12 +34,23 @@ fn main() -> Result<(), Error>{
     Ok(())
 }
 
-fn enumerate_lost_positions() {
-    let canonicals: HashSet<CanonicalGameBoard> = HashSet::new();
+fn enumerate_lost_positions(loosing_team:Team) ->(u64,u64) {
+    let mut canonicals: HashSet<CanonicalGameBoard> = HashSet::new();
     
-    let iterator = LostPositionsByPiecesTakenIterator::new();
-    
-    iterator.for_each(|element| {
-        teste ob kanonische variante von element schon in canonicals ist, wenn nein füge hinzu
-    })
+    let iterator_lost_piece = LostPositionsByPiecesTakenIterator::new(loosing_team.clone());
+    let iterator_lost_move = LostPositionsByCantMoveIterator::new(loosing_team.clone());
+    let mut counter_lost_piece:u64=0;
+    let mut counter_lost_move:u64=0;
+    iterator_lost_piece.for_each(|board| {
+        counter_lost_move+=1;
+        let temp_repres=board.get_representative();
+        canonicals.insert(temp_repres);
+    });
+    iterator_lost_move.for_each(|board| {
+        counter_lost_move+=1;
+        let temp_repres=board.get_representative();
+        canonicals.insert(temp_repres);
+    });
+    let mut _result=(counter_lost_move,counter_lost_piece);
+    _result
 }
