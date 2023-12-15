@@ -15,7 +15,7 @@ use crate::iterators::LostPositionsByPiecesTakenIterator;
 
 fn main() {
     let loosing_team:Team=Team::BLACK;
-    println!("{}, {}",enumerate_lost_positions(loosing_team).0, enumerate_lost_positions(loosing_team).1);
+    println!("{}",enumerate_lost_positions(loosing_team));
 }
 fn past_main()-> Result<(), Error>{
     let project_directory = env::current_dir()?;
