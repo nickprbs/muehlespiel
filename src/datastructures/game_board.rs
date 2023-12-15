@@ -41,7 +41,12 @@ impl UsefulGameBoard for GameBoard {
     fn from_pieces(black_locations: Vec<Location>, white_locations: Vec<Location>) -> Self {
         let mut output : GameBoard = [0,0,0];
         for location_black in black_locations {
-            let ring = (location_black as f32 / 8.0).floor() as usize; 
+            let mut ring: usize = 0;
+            if location_black < 17 && location_black > 8 {
+                ring = 1
+            } else if location_black > 16 {
+                ring = 2; 
+            }
             let mut lower_bit = 2_u16.pow(0); 
             if location_black % 8 != 0 {
                  lower_bit = 1*2_u16.pow(16-(2*(location_black %8) as u32));
@@ -49,7 +54,12 @@ impl UsefulGameBoard for GameBoard {
             output[ring] = output[ring] | lower_bit; 
         }
         for location_white in white_locations {
-            let ring = (location_white as f32 / 8.0).floor() as usize;
+            let mut ring: usize = 0;
+            if location_white < 17 && location_white > 8 {
+                ring = 1
+            } else if location_white > 16 {
+                ring = 2; 
+            }
             let mut higher_bit = 2_u16.pow(1); 
             if location_white % 8 != 0 {
                  higher_bit = 1*2_u16.pow((16-(2*(location_white %8))+1) as u32);
