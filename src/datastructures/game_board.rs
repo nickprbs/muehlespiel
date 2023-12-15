@@ -42,12 +42,12 @@ impl UsefulGameBoard for GameBoard {
         let mut output : GameBoard = [0,0,0];
         for location_black in black_locations {
             let ring = (location_black as f32 / 8.0).floor() as usize; 
-            let lower_bit = 1*2_u16.pow(16-(2*location_black as u32));
+            let lower_bit = 1*2_u16.pow(16-(2*(location_black %8) as u32));
             output[ring] = output[ring] | lower_bit;  
         }
         for location_white in white_locations {
             let ring = (location_white as f32 / 8.0).floor() as usize; 
-            let higher_bit = 1*2_u16.pow(16-(2*location_white as u32)+1);
+            let higher_bit = 1*2_u16.pow(16-(2*(location_white%8) as u32)+1);
             output[ring] = output[ring] | higher_bit;
         }
         output 
