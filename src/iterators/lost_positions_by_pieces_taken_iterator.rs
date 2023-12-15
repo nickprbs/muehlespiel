@@ -12,7 +12,13 @@ pub struct LostPositionsByPiecesTakenIterator {
 
 impl LostPositionsByPiecesTakenIterator {
     pub fn new(loosing_team: Team) -> Self {
-        todo!()
+        Self {
+            loosing_team : loosing_team,
+            piece_a_iterator : LocationIterator::new(),
+            locations_where_a_has_been : Vec::new(),
+            piece_b_iterator : LocationIterator::new(),
+            winner_mill_iterator: MillIterator::new(), 
+        }
     }
 }
 
@@ -27,7 +33,9 @@ impl Iterator for LostPositionsByPiecesTakenIterator {
     *         select aux_num pieces on the field ""randomly""
     */
     fn next(&mut self) -> Option<Self::Item> {
+        //first location
         todo!()
+
         // TODO: Remember to also place 0 up to (9-3)=6 additional ;) opponent pieces in addition to mill
     }
 }

@@ -39,7 +39,18 @@ pub trait UsefulGameBoard {
 impl UsefulGameBoard for GameBoard {
     
     fn from_pieces(black_locations: Vec<Location>, white_locations: Vec<Location>) -> Self {
-        todo!()
+        let mut output : GameBoard = [0,0,0];
+        for location_black in black_locations {
+            let ring = (location_black as f32 / 8.0).floor() as usize; 
+            let lower_bit = 1*2_u16.pow(16-(2*location_black as u32));
+            output[ring] = output[ring] | lower_bit;  
+        }
+        for location_white in white_locations {
+            let ring = (location_white as f32 / 8.0).floor() as usize; 
+            let higher_bit = 1*2_u16.pow(17-(2*location_white as u32));
+            output[ring] = output[ring] | higher_bit;
+        }
+        output 
     }
     
     fn apply(&self, _turn: Turn) -> GameBoard {

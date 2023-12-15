@@ -10,7 +10,7 @@ pub struct MillIterator {
 }
 
 impl MillIterator {
-    fn new() -> Self {
+  pub  fn new() -> Self {
         Self {
             current_angle: 0,
             current_ring: 0,

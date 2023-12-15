@@ -35,7 +35,7 @@ impl Iterator for LocationIterator {
             } else {
                 Some(result)
             }
-
+            
         } else {
             None
         }
