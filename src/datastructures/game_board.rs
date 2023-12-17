@@ -16,6 +16,7 @@ fn test_data_structure_size() {
 pub trait UsefulGameBoard {
     
     fn from_pieces(black_locations: Vec<Location>, white_locations: Vec<Location>) -> Self;
+    fn get_total_stone_amount(&self) -> u8;
 
     fn apply(&self, turn: Turn) -> GameBoard;
     fn unapply(&self, turn: Turn) -> Box<dyn Iterator<Item=GameBoard>>;
@@ -69,6 +70,11 @@ impl UsefulGameBoard for GameBoard {
         output
     }
 
+    fn get_total_stone_amount(&self) -> u8 {
+        let mut amount: u8 = 0; 
+        amount += (self[0].count_ones() + self[1].count_ones() + self[2].count_ones()) as u8; 
+        amount 
+    }
     
     fn apply(&self, _turn: Turn) -> GameBoard {
         todo!()

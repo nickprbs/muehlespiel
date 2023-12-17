@@ -48,7 +48,7 @@ impl Iterator for MillIterator {
                 center_location.add_wrapping_in_ring(1),
             ];
             
-            println!("Ring: {}, side: {}", self.current_ring, self.current_side);
+            //println!("Ring: {}, side: {}", self.current_ring, self.current_side);
 
             if self.current_side < 3 {
                 // Enumerate mills along this ring, but at a new side
