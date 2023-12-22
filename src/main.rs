@@ -1,6 +1,5 @@
 mod datastructures;
 mod iterators;
-use fnv::FnvHashSet;
 mod producer;
 use crate::producer::lost_positions::lost_positions_by_cant_move;
 use crate::producer::lost_positions::lost_positions_by_pieces_taken;
@@ -8,7 +7,6 @@ use crate::producer::lost_positions::lost_positions_by_pieces_taken;
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
-use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
 
 fn main() {
@@ -40,8 +38,7 @@ fn past_main()-> Result<(), Error>{
 }
 
 fn enumerate_lost_positions() ->u64 {
-    let canonicals: HashSet<[u16; 3], std::hash::BuildHasherDefault<fnv::FnvHasher>> = FnvHashSet::default();
-    let hash_lost_piece= lost_positions_by_cant_move();
+    let hash_lost_piece = lost_positions_by_cant_move();
     let hash_lost_move = lost_positions_by_pieces_taken();
     let mut _result:u64=hash_lost_move.len() as u64 + hash_lost_piece.len() as u64;
     _result
