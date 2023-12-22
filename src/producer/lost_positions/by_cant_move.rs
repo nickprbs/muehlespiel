@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use fnv::{FnvBuildHasher, FnvHashMap, FnvHashSet};
 use itertools::Itertools;
-use crate::datastructures::{GameBoard, Location, Team};
+use crate::datastructures::{GameBoard, Location};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::iterators::{NeighboursIterator, NRangeLocationsIterator};
 
-pub fn lost_positions_by_cant_move(loosing_team: Team) -> FnvHashSet<CanonicalGameBoard> {
+pub fn lost_positions_by_cant_move() -> FnvHashSet<CanonicalGameBoard> {
     let our_positions = calc_our_positions();
     let with_neighbours_boards = calc_with_neighbours_boards(our_positions);
     let with_auxiliaries_boards = calc_with_auxiliaries_boards(with_neighbours_boards);
@@ -164,7 +164,7 @@ fn test_auxiliaries() {
 
 #[test]
 fn test_by_cant_move() {
-    let boards = lost_positions_by_cant_move(Team::WHITE);
+    let boards = lost_positions_by_cant_move();
     let count = boards.len();
     println!("Count of Lost by can't move positions: {}", count);
     println!("First boards:");
