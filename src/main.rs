@@ -1,6 +1,6 @@
 mod datastructures;
 mod iterators;
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashSet;
 mod producer;
 use crate::producer::lost_positions::lost_positions_by_cant_move;
 use crate::producer::lost_positions::lost_positions_by_pieces_taken;
@@ -10,11 +10,9 @@ use datastructures::game_board::CanonicalGameBoard;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
 use std::collections::HashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
-use crate::iterators::LostPositionsByPiecesTakenIterator;
 
 fn main() {
-    let loosing_team:Team=Team::BLACK;
-    println!("{}",enumerate_lost_positions(loosing_team));
+    println!("{}",enumerate_lost_positions());
 }
 fn past_main()-> Result<(), Error>{
     let project_directory = env::current_dir()?;
@@ -41,8 +39,8 @@ fn past_main()-> Result<(), Error>{
     Ok(())
 }
 
-fn enumerate_lost_positions(loosing_team:Team) ->u64 {
-    let mut canonicals:HashSet<[u16; 3], std::hash::BuildHasherDefault<fnv::FnvHasher>>=FnvHashSet::default();
+fn enumerate_lost_positions() ->u64 {
+    let canonicals: HashSet<[u16; 3], std::hash::BuildHasherDefault<fnv::FnvHasher>> = FnvHashSet::default();
     let hash_lost_piece= lost_positions_by_cant_move();
     let hash_lost_move = lost_positions_by_pieces_taken();
     let mut _result:u64=hash_lost_move.len() as u64 + hash_lost_piece.len() as u64;
