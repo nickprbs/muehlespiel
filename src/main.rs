@@ -43,7 +43,7 @@ fn past_main()-> Result<(), Error>{
 
 fn enumerate_lost_positions(loosing_team:Team) ->u64 {
     let mut canonicals:HashSet<[u16; 3], std::hash::BuildHasherDefault<fnv::FnvHasher>>=FnvHashSet::default();
-    let hash_lost_piece: HashSet<[u16; 3], std::hash::BuildHasherDefault<fnv::FnvHasher>> = lost_positions_by_cant_move(loosing_team.clone());
+    let hash_lost_piece= lost_positions_by_cant_move();
     let hash_lost_move = lost_positions_by_pieces_taken();
     let mut _result:u64=hash_lost_move.len() as u64 + hash_lost_piece.len() as u64;
     _result
