@@ -15,4 +15,11 @@ impl Team {
             Team::WHITE => 0b10,
         }
     }
+
+    pub(crate) fn get_opponent(&self) -> Self {
+        match self {
+            Team::BLACK => Team::WHITE,
+            Team::WHITE => Team::BLACK
+        }
+    }
 }
