@@ -1,4 +1,4 @@
-use std::mem::{size_of, take};
+use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
 use crate::datastructures::turn::TurnAction;
 use super::{Location, Team, Turn};
@@ -93,7 +93,7 @@ impl UsefulGameBoard for GameBoard {
         };
     }
 
-    fn unapply(&self, _turn: Turn, current_team: Team) -> GameBoard {
+    fn unapply(&self, _turn: Turn, _current_team: Team) -> GameBoard {
         todo!()
     }
 
