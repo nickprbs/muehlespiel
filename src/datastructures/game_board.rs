@@ -19,7 +19,7 @@ pub trait UsefulGameBoard {
     fn get_total_stone_amount(&self) -> u8;
 
     fn apply(&self, turn: Turn) -> GameBoard;
-    fn unapply(&self, turn: Turn) -> Box<dyn Iterator<Item=GameBoard>>;
+    fn unapply(&self, turn: Turn) -> GameBoard;
 
     fn flipped(&self) -> GameBoard;
     fn rotated(&self, increments: u8) -> GameBoard;
@@ -77,7 +77,7 @@ impl UsefulGameBoard for GameBoard {
         todo!()
     }
 
-    fn unapply(&self, _turn: Turn) -> Box<dyn Iterator<Item=GameBoard>> {
+    fn unapply(&self, _turn: Turn) -> GameBoard {
         todo!()
     }
 
