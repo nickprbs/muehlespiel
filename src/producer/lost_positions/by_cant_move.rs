@@ -16,7 +16,6 @@ pub fn lost_positions_by_cant_move() -> FnvHashSet<CanonicalGameBoard> {
 fn calc_our_positions() -> FnvHashMap<CanonicalGameBoard, Vec<Location>> {
     let mut our_positions_board: HashMap<CanonicalGameBoard, Vec<Location>, FnvBuildHasher> = FnvHashMap::default();
 
-    // TODO: Use NLocationsIterator nine times and prune in between n's
     let iterator = NRangeLocationsIterator::new(4, 9, (1..=24).collect());
     iterator
         .for_each(|white_locations| {
