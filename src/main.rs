@@ -10,8 +10,9 @@ use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::Has
 use crate::datastructures::game_board::UsefulGameBoard;
 
 fn main() {
-    println!("{}",enumerate_lost_positions());
+    println!("{}", enumerate_lost_positions());
 }
+
 fn past_main()-> Result<(), Error>{
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
@@ -37,9 +38,10 @@ fn past_main()-> Result<(), Error>{
     Ok(())
 }
 
-fn enumerate_lost_positions() ->u64 {
-    let hash_lost_piece = lost_positions_by_cant_move();
-    let hash_lost_move = lost_positions_by_pieces_taken();
-    let mut _result:u64=hash_lost_move.len() as u64 + hash_lost_piece.len() as u64;
-    _result
+fn enumerate_lost_positions() -> u64 {
+    let lost_by_cant_move_map = lost_positions_by_cant_move();
+    let lost_by_pieces_taken_map = lost_positions_by_pieces_taken();
+
+    let mut sum: u64 = lost_by_pieces_taken_map.len() as u64 + lost_by_cant_move_map.len() as u64;
+    sum
 }
