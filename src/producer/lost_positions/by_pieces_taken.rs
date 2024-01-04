@@ -1,11 +1,10 @@
 use std::collections::HashSet;
 use std::hash::BuildHasherDefault;
 
-use fnv::{FnvHashSet, FnvHashMap};
+use fnv::FnvHashSet;
 use itertools::Itertools;
-use crate::datastructures::game_board;
-use crate::datastructures::{Encodable, GameBoard, Team, game_board::CanonicalGameBoard, game_board::UsefulGameBoard,};
-use crate::iterators::{NeighboursIterator, NRangeLocationsIterator, MillIterator};
+use crate::datastructures::{Encodable, GameBoard, game_board::CanonicalGameBoard, game_board::UsefulGameBoard,};
+use crate::iterators::{NRangeLocationsIterator, MillIterator};
 
 pub fn lost_positions_by_pieces_taken() -> FnvHashSet<GameBoard> {
     let mut output = FnvHashSet::default(); 
