@@ -5,7 +5,7 @@ pub struct NLocationsIterator {
     permutations_iterator: Box<dyn Iterator<Item=Vec<Location>>>
 }
 impl NLocationsIterator {
-    fn new(n: usize, free_fields: Vec<Location>) -> Self {
+    pub(crate) fn new(n: usize, free_fields: Vec<Location>) -> Self {
         Self {
             permutations_iterator: Box::new(free_fields.into_iter().combinations(n).into_iter())
         }
