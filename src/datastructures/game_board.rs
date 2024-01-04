@@ -25,9 +25,6 @@ pub trait UsefulGameBoard {
     fn rotated(&self, increments: u8) -> GameBoard;
     fn mirrored(&self) -> GameBoard;
 
-    // Get all 16 equivalent fields (including this one)
-    fn get_equivalence_class(&self) -> Box<dyn Iterator<Item=GameBoard>>;
-
     // Whether this board can be represented by the other through symmetries
     fn is_equivalent_to(&self, other: GameBoard) -> bool;
 
@@ -131,14 +128,8 @@ impl UsefulGameBoard for GameBoard {
         output
     }
 
-    fn get_equivalence_class(&self) -> Box<dyn Iterator<Item=GameBoard>> {
-        Box::new(
-            BoardEquivalenceClassIterator::new(*self)
-        )
-    }
-
     fn is_equivalent_to(&self, other: GameBoard) -> bool {
-        self.get_equivalence_class()
+        BoardEquivalenceClassIterator::new(*self)
             .any(|equal_board| equal_board == other)
     }
 
@@ -146,7 +137,7 @@ impl UsefulGameBoard for GameBoard {
     // board. Then, compare those in the equivalence class and return the smallest by concatenated
     // number.
     fn get_representative(&self) -> CanonicalGameBoard {
-        self.get_equivalence_class()
+        BoardEquivalenceClassIterator::new(*self)
             .min_by(|board_a, board_b| {
                 // Compare the two boards by first comparing their first ring, then second, then third
                 board_a[0].cmp(&board_b[0]).then(
