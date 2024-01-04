@@ -1,19 +1,20 @@
 mod datastructures;
 mod iterators;
 mod producer;
+
 use crate::producer::lost_positions::lost_positions_by_cant_move;
 use crate::producer::lost_positions::lost_positions_by_pieces_taken;
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
-use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File,collections::HashMap};
+use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, collections::HashMap};
 use crate::datastructures::game_board::UsefulGameBoard;
 
 fn main() {
     println!("{}", enumerate_lost_positions());
 }
 
-fn past_main()-> Result<(), Error>{
+fn past_main() -> Result<(), Error> {
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
     let output_file_path = project_directory.join("output.txt");
@@ -28,7 +29,7 @@ fn past_main()-> Result<(), Error>{
         line_counter += 1;
         let current_gameboard = GameBoard::decode(line?);
         let canonical_board = current_gameboard.get_representative();
-        if !hash_map.contains_key(&canonical_board){
+        if !hash_map.contains_key(&canonical_board) {
             hash_map.insert(canonical_board, line_counter);
         }
         let output_line_content = String::from(format!("{}", hash_map.get(&canonical_board).unwrap()));
