@@ -1,5 +1,7 @@
-use std::mem::size_of;
-use super::{Location, Turn};
+use std::mem::{size_of, take};
+use std::ops::{BitAnd, BitOr};
+use crate::datastructures::turn::TurnAction;
+use super::{Location, Team, Turn};
 use crate::iterators::BoardEquivalenceClassIterator;
 use super::Encodable;
 
@@ -18,8 +20,11 @@ pub trait UsefulGameBoard {
     fn from_pieces(black_locations: Vec<Location>, white_locations: Vec<Location>) -> Self;
     fn get_total_stone_amount(&self) -> u8;
 
-    fn apply(&self, turn: Turn) -> GameBoard;
-    fn unapply(&self, turn: Turn) -> GameBoard;
+    fn apply(&self, turn: Turn, current_team: Team) -> GameBoard;
+    fn unapply(&self, turn: Turn, current_team: Team) -> GameBoard;
+
+    // Places two bits (and only two!) at the given location
+    fn place_bits_at(&self, bits: u8, location: Location) -> GameBoard;
 
     fn flipped(&self) -> GameBoard;
     fn rotated(&self, increments: u8) -> GameBoard;
@@ -73,12 +78,50 @@ impl UsefulGameBoard for GameBoard {
         amount 
     }
     
-    fn apply(&self, _turn: Turn) -> GameBoard {
+    fn apply(&self, turn: Turn, current_team: Team) -> GameBoard {
+        let board = match turn.action {
+            TurnAction::Move { from, to } => {
+                self.place_bits_at(0b00, from)
+                    .place_bits_at(current_team.as_binary(), to)
+            }
+        };
+
+        return if let Some(take_from) = turn.take_from {
+            board.place_bits_at(0b00, take_from)
+        } else {
+            board
+        };
+    }
+
+    fn unapply(&self, _turn: Turn, current_team: Team) -> GameBoard {
         todo!()
     }
 
-    fn unapply(&self, _turn: Turn) -> GameBoard {
-        todo!()
+    fn place_bits_at(&self, bits: u8, location: Location) -> GameBoard {
+        let mut new_board = self.clone();
+
+        let ring = match location {
+            1..=8   => 0,
+            9..=16  => 1,
+            17..=24 => 2,
+            _       => panic!("Invalid location")
+        };
+
+        // "16 -" since we shift right, not left
+        // "2 *" since each location is two bits
+        // "(location - 1) % 8" is just the modulo
+        // "- 2" because we want the last to bits to be at the right end of the field, not wrapped to the beginning
+        let shift = 16 - (2 * ((location - 1) % 8)) - 2;
+
+        let patched_ring = new_board[ring]
+            .rotate_right(shift as u32)
+            .bitand(0b1111111111111100)
+            .bitor(bits as u16)
+            .rotate_left(shift as u32);
+
+        new_board[ring] = patched_ring;
+
+        new_board
     }
 
     // swaps inner and outer ring
@@ -161,6 +204,32 @@ fn test_game_board_from_pieces() {
     ];
     let actual_game_board = GameBoard::from_pieces(black_pieces, white_pieces);
     assert_eq!(expected_game_board, actual_game_board);
+}
+
+#[test]
+fn test_apply() {
+    let turn = Turn {
+        action: TurnAction::Move { from: 1, to: 2 },
+        take_from: Some(16)
+    };
+    let board    = "WEEBEEBWWWEEWEEBWBEWEEEB";
+    let expected = "EWEBEEBWWWEEWEEEWBEWEEEB";
+    let actual = GameBoard::decode(String::from(board))
+        .apply(turn, Team::WHITE);
+    assert_eq!(expected, actual.encode());
+}
+
+#[test]
+fn test_bit_placing() {
+    let case =     "WEEBEEBWWWEEWEEBWBEWEEEB";
+    let expected = "EWEBEEBWWEEEWEEBWBEWEEBB";
+    let actual = GameBoard::decode(String::from(case))
+        .place_bits_at(0b00, 1)
+        .place_bits_at(0b10, 2)
+        .place_bits_at(0b00, 10)
+        .place_bits_at(0b01, 23)
+        .place_bits_at(0b01, 24);
+    assert_eq!(expected, actual.encode());
 }
 
 impl Encodable for GameBoard {

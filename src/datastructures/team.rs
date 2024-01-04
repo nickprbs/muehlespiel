@@ -9,7 +9,7 @@ impl Team {
         todo!()
     }
 
-    fn as_binary(&self) -> u8 {
+    pub(crate) fn as_binary(&self) -> u8 {
         match self {
             Team::BLACK => 0b01,
             Team::WHITE => 0b10,
