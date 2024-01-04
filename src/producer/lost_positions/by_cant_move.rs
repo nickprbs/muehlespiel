@@ -26,8 +26,6 @@ fn calc_our_positions() -> FnvHashMap<CanonicalGameBoard, Vec<Location>> {
             } // else just ignore it
         });
 
-    println!("White canonicals: {}", our_positions_board.len());
-
     our_positions_board
 }
 
@@ -54,8 +52,6 @@ fn calc_with_neighbours_boards(originals: FnvHashMap<CanonicalGameBoard, Vec<Loc
                 }
             } // else ignore, since black can't lock white
         });
-
-    println!("With neighbours canonicals: {}", with_neighbours_boards.len());
 
     with_neighbours_boards
 }
