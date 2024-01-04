@@ -1,8 +1,6 @@
 use crate::datastructures::GameBoardLocation;
 use crate::datastructures::Location;
 
-// TODO: Go hardcode this
-
 pub struct MillIterator {
     current_angle: u8,
     current_ring: u8,
