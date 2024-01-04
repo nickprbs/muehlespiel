@@ -12,4 +12,4 @@ fnv = "1.0.3"
 [profile.release]
 # get (potentually) free performance (https://nnethercote.github.io/perf-book/build-configuration.html#maximizing-runtime-speed)
 codegen-units = 1
-lto = "thin"
+lto = "thin" # somehow performs better than "fat". Last tested on producing lost positions
