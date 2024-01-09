@@ -1,4 +1,3 @@
-use crate::datastructures::Location;
 use crate::datastructures::{Encodable, Location};
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]

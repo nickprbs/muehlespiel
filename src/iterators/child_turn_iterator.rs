@@ -54,7 +54,7 @@ impl Iterator for TurnIterator {
 }
 
 impl TurnIterator {
-    fn next_placing_turn(&mut self) -> Option<Self::Item> {
+    fn next_placing_turn(&mut self) -> Option<<TurnIterator as Iterator>::Item> {
         match self.placing_current_location {
             None => None,
             Some(current_location) => {
@@ -72,7 +72,7 @@ impl TurnIterator {
         }
     }
 
-    fn next_moving_turn(&mut self) -> Option<Self::Item> {
+    fn next_moving_turn(&mut self) -> Option<<TurnIterator as Iterator>::Item> {
         todo!()
     }
 }

@@ -1,8 +1,9 @@
 use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
+use itertools::Itertools;
 use crate::datastructures::turn::TurnAction;
-use super::{Location, Team, Turn};
-use crate::iterators::BoardEquivalenceClassIterator;
+use super::{GameBoardLocation, Location, Team, Turn};
+use crate::iterators::{BoardEquivalenceClassIterator, NeighboursIterator};
 use super::Encodable;
 
 pub type GameBoard = [u16; 3];
