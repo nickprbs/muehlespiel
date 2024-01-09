@@ -2,7 +2,7 @@ use itertools::Itertools;
 use crate::datastructures::{GameBoard, Location, Phase, Team, Turn, TurnAction};
 use crate::datastructures::game_board::UsefulGameBoard;
 
-pub struct TurnIterator {
+pub struct ChildTurnIterator {
     phase: Phase,
     occupied_locations: Vec<Location>,
     own_locations: Vec<Location>,
@@ -13,7 +13,7 @@ pub struct TurnIterator {
 
 }
 
-impl TurnIterator {
+impl ChildTurnIterator {
     pub(crate) fn new(phase: Phase, team: Team, board: GameBoard) -> Self {
         let own_locations = board.get_piece_locations(team);
         let opponent_locations = board.get_piece_locations(team.get_opponent());
@@ -38,7 +38,7 @@ impl TurnIterator {
     }
 }
 
-impl Iterator for TurnIterator {
+impl Iterator for ChildTurnIterator {
     type Item = Turn;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -53,8 +53,8 @@ impl Iterator for TurnIterator {
     }
 }
 
-impl TurnIterator {
-    fn next_placing_turn(&mut self) -> Option<<TurnIterator as Iterator>::Item> {
+impl ChildTurnIterator {
+    fn next_placing_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
         match self.placing_current_location {
             None => None,
             Some(current_location) => {
@@ -72,7 +72,7 @@ impl TurnIterator {
         }
     }
 
-    fn next_moving_turn(&mut self) -> Option<<TurnIterator as Iterator>::Item> {
+    fn next_moving_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
         todo!()
     }
 }

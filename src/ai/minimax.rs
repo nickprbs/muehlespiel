@@ -12,7 +12,7 @@ use crate::ai::evaluation::evaluate_position;
 use crate::datastructures::{Encodable, GameBoard, Phase, Team, Turn};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::datastructures::Team::{WHITE, BLACK};
-use crate::iterators::TurnIterator;
+use crate::iterators::ChildTurnIterator;
 
 pub struct MinimaxAgent {}
 
@@ -93,7 +93,7 @@ impl MinimaxAgent {
         } else if depth == max_depth || board.is_game_done() {
             return evaluate_position(team_to_maximize, board);
         } else {
-            let turns = TurnIterator::new(
+            let turns = ChildTurnIterator::new(
                 phase,
                 team_to_maximize,
                 board
