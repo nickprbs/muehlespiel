@@ -10,6 +10,8 @@ pub trait GameBoardLocation {
     fn add_wrapping_in_ring(&self, value_to_add: i16) -> Self;
     fn apply_direction(&self, direction: Direction) -> Option<Location>;
     fn exists(&self) -> bool;
+
+    fn to_ring_and_angle(self) -> (u8, u8);
 }
 
 impl GameBoardLocation for Location {
@@ -58,6 +60,19 @@ impl GameBoardLocation for Location {
 
     fn exists(&self) -> bool {
         self >= &1 && self <= &24
+    }
+
+    fn to_ring_and_angle(self) -> (u8, u8) {
+        let ring = match self {
+            1..=8   => 0,
+            9..=16  => 1,
+            17..=24 => 2,
+            _       => panic!("Invalid location")
+        };
+
+        let angle = (self - 1) % 8;
+
+        (ring, angle)
     }
 }
 

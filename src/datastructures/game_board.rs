@@ -37,6 +37,16 @@ pub trait UsefulGameBoard {
     // That representative is determined by comparing the gameboard arrays and getting the lowest one
     // (first comparing the number of the outer most ring, if equal: the middle, if equal: the inner)
     fn get_representative(&self) -> CanonicalGameBoard;
+
+    // Whether the game is finished
+    // Happens when:
+    // 1) One team only has two pieces
+    // 2) One team can't move anymore
+    fn is_game_done(&self) -> bool;
+    fn is_occupied(&self, location: Location) -> bool;
+
+    fn get_num_pieces(&self, team: Team) -> u8;
+    fn get_piece_locations(&self, team: Team) -> Vec<Location>;
 }
 
 impl UsefulGameBoard for GameBoard {
@@ -83,6 +93,9 @@ impl UsefulGameBoard for GameBoard {
             TurnAction::Move { from, to } => {
                 self.place_bits_at(0b00, from)
                     .place_bits_at(current_team.as_binary(), to)
+            },
+            TurnAction::Place { location } => {
+                self.place_bits_at(current_team.as_binary(), location)
             }
         };
 
@@ -98,6 +111,9 @@ impl UsefulGameBoard for GameBoard {
             TurnAction::Move { from, to } => {
                 self.place_bits_at(0b00, to)
                     .place_bits_at(current_team.as_binary(), from)
+            },
+            TurnAction::Place { location } => {
+                self.place_bits_at(0b00, location)
             }
         };
 
@@ -112,26 +128,20 @@ impl UsefulGameBoard for GameBoard {
     fn place_bits_at(&self, bits: u8, location: Location) -> GameBoard {
         let mut new_board = self.clone();
 
-        let ring = match location {
-            1..=8   => 0,
-            9..=16  => 1,
-            17..=24 => 2,
-            _       => panic!("Invalid location")
-        };
+        let (ring, angle) = location.to_ring_and_angle();
 
         // "16 -" since we shift right, not left
         // "2 *" since each location is two bits
-        // "(location - 1) % 8" is just the modulo
         // "- 2" because we want the last to bits to be at the right end of the field, not wrapped to the beginning
-        let shift = 16 - (2 * ((location - 1) % 8)) - 2;
+        let shift = 16 - (2 * angle) - 2;
 
-        let patched_ring = new_board[ring]
+        let patched_ring = new_board[ring as usize]
             .rotate_right(shift as u32)
             .bitand(0b1111111111111100)
             .bitor(bits as u16)
             .rotate_left(shift as u32);
 
-        new_board[ring] = patched_ring;
+        new_board[ring as usize] = patched_ring;
 
         new_board
     }
@@ -203,6 +213,85 @@ impl UsefulGameBoard for GameBoard {
             })
             .expect("None found in equivalence class")
     }
+
+    fn is_game_done(&self) -> bool {
+        let by_pieces_taken = [Team::WHITE, Team::BLACK].into_iter()
+            .any(|team| self.get_num_pieces(team) <= 2);
+
+        let can_white_not_move = NeighboursIterator::new(self.get_piece_locations(Team::WHITE))
+            .filter(|neighbour| { !self.is_occupied(*neighbour) })
+            .dedup()
+            .take(1) // Little optimization. Since we only care if there is at least one, just check if there is one.
+            .count() == 0;
+        let can_black_not_move = NeighboursIterator::new(self.get_piece_locations(Team::BLACK))
+            .filter(|neighbour| { !self.is_occupied(*neighbour) })
+            .dedup()
+            .take(1)
+            .count() == 0;
+        let by_cant_move = can_white_not_move || can_black_not_move;
+
+        by_pieces_taken || by_cant_move
+    }
+
+    fn is_occupied(&self, location: Location) -> bool {
+        let (ring, angle) = location.to_ring_and_angle();
+
+        let shifted: u16 = self.clone()[ring as usize] >> (16 - (2 * angle) - 2);
+        let field = shifted & 0b11;
+
+        field.count_ones() > 0
+    }
+
+    fn get_num_pieces(&self, team: Team) -> u8 {
+        let offset = match team {
+            Team::BLACK => 0,
+            Team::WHITE => 1
+        };
+        let mut count = 0;
+
+        for ring in 0..=2 {
+            let mut current_ring = self[ring].clone();
+            current_ring = current_ring >> offset;
+            count += current_ring & 0b00000001;
+            for _angle in 0..7 {
+                current_ring = current_ring >> 2;
+                count += current_ring & 0b00000001
+            }
+        }
+
+        count as u8
+    }
+
+    fn get_piece_locations(&self, team: Team) -> Vec<Location> {
+        let offset = match team {
+            Team::BLACK => 0,
+            Team::WHITE => 1
+        };
+        let mut locations = vec![];
+        let mut current_location: Location = 0;
+
+        for ring in 0..=2 {
+            current_location += 1;
+
+            let mut current_ring = self[ring].clone();
+            current_ring = current_ring >> offset;
+
+            if current_ring & 0b00000001 == 1 {
+                locations.push(current_location);
+            }
+
+            for _angle in 0..7 {
+                current_ring = current_ring >> 2;
+                if current_ring & 0b00000001 == 1 {
+                    locations.push(current_location);
+                }
+                current_location += 1;
+            }
+        }
+
+        locations
+    }
+
 }
 
 #[test]
@@ -242,6 +331,30 @@ fn test_bit_placing() {
         .place_bits_at(0b01, 23)
         .place_bits_at(0b01, 24);
     assert_eq!(expected, actual.encode());
+}
+
+#[test]
+fn test_get_num_pieces() {
+    let case = GameBoard::decode(String::from("WEEBEEBWWWEEWEEBWBEWEEEB"));
+    let expected_white_count = 7;
+    let expected_black_count = 5;
+
+    assert_eq!(expected_white_count, case.get_num_pieces(Team::WHITE));
+    assert_eq!(expected_black_count, case.get_num_pieces(Team::BLACK));
+}
+
+#[test]
+fn test_is_game_done() {
+    let case = GameBoard::decode(String::from("WEEBEEBWWWEEWEEBWBEWEEEB"));
+    assert_eq!(false, case.is_game_done());
+
+    // by pieces taken
+    let case = GameBoard::decode(String::from("WWEEEEEBEEEBEBEEEBBEEEEE"));
+    assert_eq!(true, case.is_game_done());
+
+    // by cant move
+    let case = GameBoard::decode(String::from("BEBEEEEBWWBWBEEBBBEBBBBB"));
+    assert_eq!(true, case.is_game_done());
 }
 
 impl Encodable for GameBoard {

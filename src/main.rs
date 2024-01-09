@@ -1,6 +1,7 @@
 mod datastructures;
 mod iterators;
 mod producer;
+mod ai;
 
 use crate::producer::lost_positions::lost_positions_by_cant_move;
 use crate::producer::lost_positions::lost_positions_by_pieces_taken;
@@ -9,9 +10,12 @@ use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, collections::HashMap};
 use crate::datastructures::game_board::UsefulGameBoard;
+use crate::ai::{Agent, MinimaxAgent};
 
 fn main() {
-    println!("{}", enumerate_lost_positions());
+    // println!("{}", enumerate_lost_positions());
+    let result = MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("EEWEEWEEWEWEBBBEEEEEEBEE")), ());
+    println!("{}", result.encode());
 }
 
 fn past_main() -> Result<(), Error> {
