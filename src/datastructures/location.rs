@@ -77,6 +77,23 @@ impl GameBoardLocation for Location {
 }
 
 #[test]
+fn test_to_ring_and_angle() {
+    for location in 1..=24 {
+        let test_loc: Location = location as u8;
+        let (x,y) = test_loc.to_ring_and_angle();
+        if test_loc < 9 {
+            assert_eq!(x, 0);
+        } else if test_loc >8 && test_loc < 17 {
+            assert_eq!(x,1);
+        } else if test_loc > 16 && test_loc < 25 {
+            assert_eq!(x,2);
+        }
+        assert_eq!(y, (test_loc-1)%8 as u8 )
+    }
+}
+
+
+#[test]
 fn test_location_wrapping() {
     let expected: Location = 1;
     let actual = 8.add_wrapping_in_ring(1);

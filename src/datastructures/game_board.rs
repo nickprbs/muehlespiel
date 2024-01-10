@@ -1,8 +1,9 @@
+use std::collections::HashSet;
 use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
 use itertools::Itertools;
 use crate::datastructures::turn::TurnAction;
-use super::{GameBoardLocation, Location, Team, Turn};
+use super::{GameBoardLocation, Location, Team, Turn, team};
 use crate::iterators::{BoardEquivalenceClassIterator, NeighboursIterator};
 use super::Encodable;
 
@@ -45,6 +46,9 @@ pub trait UsefulGameBoard {
     // 2) One team can't move anymore
     fn is_game_done(&self) -> bool;
     fn is_occupied(&self, location: Location) -> bool;
+    // Returns true if the given Location is part of any mill. Using the location vectors as arguments is more efficient
+    // in more complex tasks, becuase they then need to be calculated only once.
+    fn is_mill_at(&self, location: Location, black_locations:&Vec<u8>, white_locations:&Vec<u8>) -> bool;
 
     fn get_num_pieces(&self, team: Team) -> u8;
     fn get_piece_locations(&self, team: Team) -> Vec<Location>;
@@ -243,6 +247,51 @@ impl UsefulGameBoard for GameBoard {
         field.count_ones() > 0
     }
 
+    //TODO: fix test
+    fn is_mill_at(&self, location: Location, black_locations:&Vec<u8>, white_locations:&Vec<u8>) -> bool {
+        let mut output = false; 
+        let (ring, angle) = location.to_ring_and_angle(); 
+        let mut _team:Team = Team::WHITE;
+        if black_locations.contains(&location){
+            _team = Team::BLACK;
+        }
+        
+        let lookup_vec= match _team {
+            Team::BLACK =>  black_locations,
+            Team::WHITE =>  white_locations
+        };
+        //case 1: edge-field
+        if angle % 2 == 1 {
+            if angle == 1 {
+                output = (lookup_vec.contains(&(location-1 as u8)) && lookup_vec.contains(&(location+6 as u8)) ) || 
+                         (lookup_vec.contains(&(location+1 as u8)) && lookup_vec.contains(&(location+2 as u8)) )
+            } else if angle == 7 {
+                output = (lookup_vec.contains(&(location-1 as u8)) && lookup_vec.contains(&(location-2 as u8)) ) || 
+                         (lookup_vec.contains(&(location-6 as u8)) && lookup_vec.contains(&(location-7 as u8)) )
+            } else {
+                output = (lookup_vec.contains(&(location-1 as u8)) && lookup_vec.contains(&(location-2 as u8)) ) || 
+                         (lookup_vec.contains(&(location+1 as u8)) && lookup_vec.contains(&(location+2 as u8)) )
+            }
+        }
+        //case 2: middle-field
+        else {
+            //mill on the same ring?
+            if angle == 0 {
+                output = output || (lookup_vec.contains(&(location+1 as u8)) && lookup_vec.contains(&(location+7 as u8)))
+            } else {
+                output = output || (lookup_vec.contains(&(location+1 as u8)) && lookup_vec.contains(&(location-1 as u8)))
+            }
+            //mill across rings? 
+            output = match ring {
+                0 => output || (lookup_vec.contains(&(location+8 as u8)) && lookup_vec.contains(&(location+16 as u8))),
+                1 => output || (lookup_vec.contains(&(location+8 as u8)) && lookup_vec.contains(&(location-8 as u8))),
+                2 => output || (lookup_vec.contains(&(location-8 as u8)) && lookup_vec.contains(&(location-16 as u8))),
+                _ => panic!("invalid location!")
+            }; 
+        }
+        output
+    }
+
     fn get_num_pieces(&self, team: Team) -> u8 {
         let offset = match team {
             Team::BLACK => 0,
@@ -263,32 +312,26 @@ impl UsefulGameBoard for GameBoard {
         count as u8
     }
 
-    fn get_piece_locations(&self, team: Team) -> Vec<Location> {
-        let offset = match team {
-            Team::BLACK => 0,
-            Team::WHITE => 1
+    fn get_piece_locations(&self, _team: Team) -> Vec<Location> {
+        let mut locations: Vec<u8> = Vec::new();
+        let (higher, lower) = match _team {
+            Team::BLACK => (0,1),
+            Team::WHITE => (1,0)
         };
-        let mut locations = vec![];
-        let mut current_location: Location = 0;
-
+        let mut counter: u8 = 25; 
         for ring in 0..=2 {
-            current_location += 1;
+            let mut bitmask: u16 = lower + 2*higher;
+            let current_ring = self[2-ring]; 
+            for _angle in 0..=7 {
+                counter -=1; 
 
-            let mut current_ring = self[ring].clone();
-            current_ring = current_ring >> offset;
-
-            if current_ring & 0b00000001 == 1 {
-                locations.push(current_location);
-            }
-
-            for _angle in 0..7 {
-                current_ring = current_ring >> 2;
-                if current_ring & 0b00000001 == 1 {
-                    locations.push(current_location);
+                if current_ring & bitmask != 0 {
+                    locations.push(counter); 
                 }
-                current_location += 1;
+                bitmask = bitmask << 2;
+                
             }
-        }
+        } 
 
         locations
     }
@@ -356,6 +399,46 @@ fn test_is_game_done() {
     // by cant move
     let case = GameBoard::decode(String::from("BEBEEEEBWWBWBEEBBBEBBBBB"));
     assert_eq!(true, case.is_game_done());
+}
+
+
+#[test]
+
+#[test]
+fn test_is_mill_at() {
+    //2 mills
+    let case1 = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB"));
+    let case1_black = case1.get_piece_locations(Team::BLACK);
+    assert!(case1_black.contains(&1));
+    assert!(case1_black.contains(&17));
+    assert!(case1_black.contains(&18));
+    assert!(case1_black.contains(&22));
+    assert!(case1_black.contains(&23));
+    assert!(case1_black.contains(&24));
+    let case1_white = case1.get_piece_locations(Team::WHITE);
+    //0 mills
+    let case2 = GameBoard::decode(String::from("WEEEEEEEBBWBWEEWWEEEEEEE"));
+    let case2_black = case2.get_piece_locations(Team::BLACK);
+    let case2_white = case2.get_piece_locations(Team::WHITE);
+    //1 mill (other team)
+    let case3 = GameBoard::decode(String::from("WWWEEEEWBBEEBEEEEEEEEEEE"));
+    let case3_black = case3.get_piece_locations(Team::BLACK);
+    let case3_white = case3.get_piece_locations(Team::WHITE);
+
+    assert!(case1.is_mill_at(18, &case1_black, &case1_white));
+    assert!(case1.is_mill_at(23, &case1_black, &case1_white));
+    assert!(!case1.is_mill_at(15, &case1_black, &case1_white));
+    assert!(case1.is_mill_at(24, &case1_black, &case1_white));
+
+    assert!(!case2.is_mill_at(1, &case2_black, &case2_white));
+    assert!(!case2.is_mill_at(5, &case2_black, &case2_white));
+    assert!(!case2.is_mill_at(9, &case2_black, &case2_white));
+
+    assert!(case3.is_mill_at(1, &case3_black, &case3_white));
+    assert!(case3.is_mill_at(8, &case3_black, &case3_white));
+    assert!(case3.is_mill_at(2, &case3_black, &case3_white));
+    assert!(!case3.is_mill_at(24, &case3_black, &case3_white));
+
 }
 
 impl Encodable for GameBoard {
