@@ -52,6 +52,14 @@ pub trait UsefulGameBoard {
 
     fn get_num_pieces(&self, team: Team) -> u8;
     fn get_piece_locations(&self, team: Team) -> Vec<Location>;
+    fn get_team_at(&self, location: Location) -> Option<Team>; 
+    fn get_free_neighbours(&self, location: Location) -> Vec<Location>; 
+    
+    
+    // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a 
+    // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
+    // stone in the CURRENT gameboard. 
+    fn calc_previous_possibilities (&self, _location: Location) -> u16; 
 }
 
 impl UsefulGameBoard for GameBoard {
@@ -247,7 +255,6 @@ impl UsefulGameBoard for GameBoard {
         field.count_ones() > 0
     }
 
-    //TODO: fix test
     fn is_mill_at(&self, location: Location, black_locations:&Vec<u8>, white_locations:&Vec<u8>) -> bool {
         let mut output = false; 
         let (ring, angle) = location.to_ring_and_angle(); 
@@ -336,6 +343,56 @@ impl UsefulGameBoard for GameBoard {
         locations
     }
 
+    fn get_team_at(&self, location: Location) -> Option<Team> {
+        let (ring, angle) = location.to_ring_and_angle(); 
+        let ( higher, lower) = ( (self[ring as usize] & (1*2_u16.pow((15-2*angle) as u32))).count_ones() , 
+                                        (self[ring as usize] & (1*2_u16.pow((14-2*angle) as u32)) ).count_ones());
+        let team: Option<Team> = match (higher, lower) {
+            (0,1) => Some(Team::BLACK),
+            (1,0) => Some(Team::WHITE),
+            (0,0) => None,
+            _ => panic!("Invalid team ")
+        };
+        team 
+    }
+
+    // panics if the location is empty 
+    fn get_free_neighbours(&self, location: Location) -> Vec<Location> {
+        let mut free_neighbours: Vec<u8> = Vec::new();
+        let team = self.get_team_at(location).expect("Can't calculate neighbours on an empty field!"); 
+        let lookup_vec = self.get_piece_locations(team); 
+        if lookup_vec.len() <= 3 {
+             free_neighbours = (1..=24).into_iter().filter(|field| !self.is_occupied(*field)).collect_vec();
+        } else {
+             free_neighbours = NeighboursIterator::new(vec![location])
+            .filter(|neighbour| !self.is_occupied(*neighbour)).collect_vec();
+        }
+        free_neighbours 
+    }
+
+    fn calc_previous_possibilities (&self, _location: Location) -> u16 {
+        let mut output: u16 = 0; 
+        let _team = self.get_team_at(_location); 
+        match _team {
+            //if the field is empty there are no possible moves
+            None => {return output },
+            Some(_) => {}
+        }
+        let _team = _team.unwrap(); 
+        let free_neighbours = self.get_free_neighbours(_location); 
+        let mill_flag = self.is_mill_at(_location, &self.get_piece_locations(Team::BLACK), 
+            &self.get_piece_locations(Team::WHITE));
+        //current stone is part of a mill => previous move could have been closing it with this stone
+        if mill_flag {
+            //locations where the current stone could have been
+            for neighbour in free_neighbours {
+            }
+        }
+
+
+        output 
+    }
+
 }
 
 #[test]
@@ -403,6 +460,29 @@ fn test_is_game_done() {
 
 
 #[test]
+fn test_get_team_at() {
+    let string = String::from("BWEEEEEWWEEEEEWWBBWEWBBB");
+    let case = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB")); 
+    let mut counter = 0;
+    for char in string.chars(){
+        counter += 1; 
+        if char == 'B' {
+            assert_eq!(case.get_team_at(counter), Some(Team::BLACK));
+        } else if char == 'W' {
+            assert_eq!(case.get_team_at(counter), Some(Team::WHITE));
+        } else if char == 'E' {
+            assert_eq!(case.get_team_at(counter), None);
+        }
+    }
+}
+
+#[test]
+fn test_get_free_neighbours () {
+    let case = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB"));
+    assert_eq!(case.get_free_neighbours(1), Vec::new()); 
+    assert_eq!(case.get_free_neighbours(19), vec![20,11]);
+}
+
 
 #[test]
 fn test_is_mill_at() {

@@ -7,6 +7,10 @@ pub struct ParentBoardIterator {
     own_locations: Vec<Location>,
     opponent_locations: Vec<Location>,
     processed_opponent_stones: Vec<Location>,
+    current_stone: Location, 
+    curr_stone_previous_possibilities : u8,
+    current_stone_move_vec: Vec<(Location, Location, Option<Location> )>, // Vec<(From, To, Place position)>
+
 
 }
 
@@ -24,4 +28,6 @@ impl ParentBoardIterator {
  pub(crate) fn new(current_team: Team, current_board: GameBoard) -> Self {
     todo!()
  }
+
+ 
 }
