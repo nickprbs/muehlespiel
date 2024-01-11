@@ -49,7 +49,7 @@ pub trait UsefulGameBoard {
     // Returns true if the given Location is part of any mill. Using the location vectors as arguments is more efficient
     // in more complex tasks, becuase they then need to be calculated only once.
     fn is_mill_at(&self, location: Location, black_locations:&Vec<u8>, white_locations:&Vec<u8>) -> bool;
-
+    fn has_only_mills(&self, team: Team) -> bool;
     fn get_num_pieces(&self, team: Team) -> u8;
     fn get_piece_locations(&self, team: Team) -> Vec<Location>;
     fn get_team_at(&self, location: Location) -> Option<Team>; 
@@ -59,7 +59,7 @@ pub trait UsefulGameBoard {
     // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a 
     // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
     // stone in the CURRENT gameboard. 
-    fn calc_previous_possibilities (&self, _location: Location) -> u16; 
+    fn calc_previous_possibilities_amount (&self, _location: Location) -> u16; 
 }
 
 impl UsefulGameBoard for GameBoard {
@@ -299,6 +299,17 @@ impl UsefulGameBoard for GameBoard {
         output
     }
 
+    fn has_only_mills(&self, team: Team) -> bool {
+        let team_vector = self.get_piece_locations(team); 
+        let black_locations = self.get_piece_locations(Team::BLACK);
+        let white_locations = self.get_piece_locations(Team::WHITE); 
+        if team_vector.iter().all(|location| self.is_mill_at(*location, &black_locations, &white_locations)) {
+            return true 
+        } else {
+            return false 
+        }
+    }
+
     fn get_num_pieces(&self, team: Team) -> u8 {
         let offset = match team {
             Team::BLACK => 0,
@@ -370,7 +381,7 @@ impl UsefulGameBoard for GameBoard {
         free_neighbours 
     }
 
-    fn calc_previous_possibilities (&self, _location: Location) -> u16 {
+    fn calc_previous_possibilities_amount (&self, _location: Location) -> u16 {
         let mut output: u16 = 0; 
         let _team = self.get_team_at(_location); 
         match _team {
@@ -386,6 +397,7 @@ impl UsefulGameBoard for GameBoard {
         if mill_flag {
             //locations where the current stone could have been
             for neighbour in free_neighbours {
+                // if closed => stone taken anywhere without mill
             }
         }
 
@@ -519,6 +531,13 @@ fn test_is_mill_at() {
     assert!(case3.is_mill_at(2, &case3_black, &case3_white));
     assert!(!case3.is_mill_at(24, &case3_black, &case3_white));
 
+}
+
+#[test]
+fn test_has_only_mills () {
+    let case1 = GameBoard::decode(String::from("EWEEEEEWWEEEEEWWBBWEWBBB"));
+    assert!(case1.has_only_mills(Team::BLACK)); 
+    assert!(!case1.has_only_mills(Team::WHITE)); 
 }
 
 impl Encodable for GameBoard {
