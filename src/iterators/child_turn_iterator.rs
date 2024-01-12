@@ -89,7 +89,7 @@ impl ChildTurnIterator {
             .collect();
 
         // It might be that there are no to take, because all are in mills. Then, all can be taken
-        if takeable_opponent_locations.len() == 0 && opponent_locations.len() > 0 {
+        if takeable_opponent_locations.len() == 0 {
             takeable_opponent_locations = opponent_locations;
         };
 
@@ -310,15 +310,25 @@ fn test_child_turn_iterator_moving() {
         let board = GameBoard::decode(String::from(board));
 
         let turns: Vec<Turn> = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, board).dedup().collect();
-        let count_turns = turns.len();
-        let count_turns_with_mills = turns.iter()
+        let count_turns_not_counting_taking = turns.clone().into_iter()
+            .map(|turn| { turn.action })
+            .dedup()
+            .count();
+        let count_turns_with_mills = turns.clone().into_iter()
             .filter(|turn| { turn.take_from.is_some() })
+            .map(|turn| { turn.action })
+            .dedup()
             .count();
 
         let opponent_locations = board.get_piece_locations(Team::BLACK);
         let count_takeables = ChildTurnIterator::calculate_takeables(opponent_locations).len();
+        let actual_count_takeables = if turns.iter().any(|turn| { turn.take_from.is_some() }) {
+            count_takeables
+        } else {
+            0
+        };
 
-        let result = format!("{count_turns} {count_turns_with_mills} {count_takeables}\n");
+        let result = format!("{count_turns_not_counting_taking} {count_turns_with_mills} {actual_count_takeables}\n");
         println!("{result}");
         actual.push_str(result.as_str());
     }
