@@ -8,17 +8,19 @@ use crate::producer::lost_positions::lost_positions_by_pieces_taken;
 
 use datastructures::*;
 use datastructures::game_board::CanonicalGameBoard;
+use producer::complete_search::complete_search;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, collections::HashMap};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
 fn main() {
     // println!("{}", enumerate_lost_positions());
-    let result = MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("EEWEEWEEWEWEBBBEEEEEEBEE")), ());
-    println!("{}", result.encode());
+    //let result = MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("EEWEEWEEWEWEBBBEEEEEEBEE")), ());
+    //println!("{}", result.encode());
+    comeplete_search_evaluation();
 }
 
-fn past_main() -> Result<(), Error> {
+fn comeplete_search_evaluation() -> Result<(), Error> {
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
     let output_file_path = project_directory.join("output.txt");
@@ -26,17 +28,22 @@ fn past_main() -> Result<(), Error> {
     let input_file = File::open(&input_file_path)?;
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
-    let mut hash_map: HashMap<CanonicalGameBoard, u64> = HashMap::new();
-    let mut line_counter: u64 = 0;
+    
+    let (loser, winner) = complete_search(); 
+    eprintln!("loser:{}, winner:{}", loser.len(), winner.len()); 
 
     for line in file_reader.lines() {
-        line_counter += 1;
+        
         let current_gameboard = GameBoard::decode(line?);
         let canonical_board = current_gameboard.get_representative();
-        if !hash_map.contains_key(&canonical_board) {
-            hash_map.insert(canonical_board, line_counter);
+        let mut output_line_content; 
+        if loser.contains(&canonical_board){
+            output_line_content = 0;
+        } else if winner.contains(&canonical_board){
+            output_line_content = 2;
+        } else {
+            output_line_content = 1; 
         }
-        let output_line_content = String::from(format!("{}", hash_map.get(&canonical_board).unwrap()));
         writeln!(output_file, "{}", output_line_content)?;
     }
 

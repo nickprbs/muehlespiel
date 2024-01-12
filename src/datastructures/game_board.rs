@@ -104,9 +104,7 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn get_total_stone_amount(&self) -> u8 {
-        let mut amount: u8 = 0;
-        amount += (self[0].count_ones() + self[1].count_ones() + self[2].count_ones()) as u8;
-        amount
+        (self[0].count_ones() + self[1].count_ones() + self[2].count_ones()) as u8
     }
 
     fn apply(&self, turn: Turn, current_team: Team) -> GameBoard {
@@ -740,4 +738,14 @@ fn test_rotating() {
     assert_eq!(case0.rotated(4), case0);
     assert_eq!(case1.rotated(4), case1);
     assert_eq!(case2.rotated(4), case2);
+}
+
+#[test]
+fn test_get_total_stone_amount() {
+    let case = GameBoard::decode(String::from("WEEBEEBWWWEEWEEBWBEWEEEB"));
+    assert_eq!(case.get_total_stone_amount(), 12);
+    let case = GameBoard::decode(String::from("WWEEEEEBEEEBEBEEEBBEEEEE"));
+    assert_eq!(case.get_total_stone_amount(), 7);
+    let case = GameBoard::decode(String::from("BEBEEEEBWWBWBEEBBBEBBBBB"));
+    assert_eq!(case.get_total_stone_amount(), 16);
 }

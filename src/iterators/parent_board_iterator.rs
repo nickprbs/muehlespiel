@@ -1,8 +1,9 @@
 use std::collections::HashSet;
+use std::default;
 
 use fnv::FnvHashMap;
 use itertools::Itertools;
-use crate::datastructures::{GameBoard, Location, Phase, Team, Turn, TurnAction};
+use crate::datastructures::{GameBoard, Location, Phase, Team, Turn, TurnAction, Encodable};
 use crate::datastructures::game_board::{UsefulGameBoard, CanonicalGameBoard};
 
 pub struct ParentBoardIterator {
@@ -95,9 +96,9 @@ impl Iterator for PreviousMoveIterator {
         }
         let team = team.unwrap(); 
         let free_neighbours = self.board.get_free_neighbours(self.current_stone);
+
         // if the opponent got a mill at the given location, there are more possible previous states
         if self.mill_flag {
-            
             //locations where the current stone could have been
             for neighbour in free_neighbours {
                 let valid_free_fields: Vec<Location> = (1..=24).into_iter().filter(|position| (!self.occupied_locations.contains(position))
@@ -126,7 +127,7 @@ impl Iterator for PreviousMoveIterator {
                         temp_board = temp_board.apply(second_temp_move, team); 
                         let temp_board: CanonicalGameBoard = temp_board.get_representative(); 
                         if self.lookup.contains_key(&temp_board) {
-                            return self.next() 
+                            continue;
                         } else {
                             self.lookup.insert(temp_board, true); 
                             return Some(temp_board) 
@@ -135,7 +136,7 @@ impl Iterator for PreviousMoveIterator {
                         // => we cant take any stone => we cant build any parent board
                     } else {
                         if temp_board.is_mill_at(ghost_field, &black_locations, &white_locations) {
-                            return self.next()
+                            continue;
                         } else {
                             let second_temp_move = Turn {
                                 action: TurnAction::Move { from: self.current_stone, to: neighbour },
@@ -144,7 +145,7 @@ impl Iterator for PreviousMoveIterator {
                             temp_board = temp_board.apply(second_temp_move, team); 
                             let temp_board: CanonicalGameBoard = temp_board.get_representative(); 
                             if self.lookup.contains_key(&temp_board) {
-                                return self.next() 
+                                continue;
                             } else {
                                 self.lookup.insert(temp_board, true); 
                                 return Some(temp_board) 
@@ -164,20 +165,21 @@ impl Iterator for PreviousMoveIterator {
                 let temp_board = self.board.clone().apply(temp_turn, team); 
                 let temp_board: CanonicalGameBoard = temp_board.get_representative();
                 if self.lookup.contains_key(&temp_board) {
-                    return self.next()
+                    continue; 
                 } else {
                     self.lookup.insert(temp_board, true); 
                     return Some(temp_board)
                 }
             }
         }
-        return None 
+        None
     }
 }
 
 impl PreviousMoveIterator {
     fn new (input_occupied_locations: Vec<Location>, input_own_locations: Vec<Location>, input_opponent_locations: Vec<Location>, 
             input_current_stone: Option<Location>, input_board: GameBoard) -> Self{
+                let mut lookup_hash: FnvHashMap<CanonicalGameBoard, bool> = FnvHashMap::default(); 
         Self {
             occupied_locations: input_occupied_locations,
             own_locations : input_own_locations,
@@ -186,9 +188,24 @@ impl PreviousMoveIterator {
             board: input_board,
             mill_flag : input_board.is_mill_at(input_current_stone.unwrap(), &input_board.get_piece_locations(Team::BLACK), 
             &input_board.get_piece_locations(Team::WHITE)),
-            lookup : FnvHashMap::default()
+            lookup : lookup_hash,
         }        
     }
 
     
+}
+
+
+#[test]
+fn test_parent_iterator () {
+    let case1: GameBoard = GameBoard::decode(String::from("EEWWBBBEEEWWBBBWWEWBWBWE")); 
+    let iter = ParentBoardIterator::new(Team::BLACK, case1); 
+    let input_own_locations = case1.get_piece_locations(Team::BLACK); 
+    let input_opponent_locations = case1.get_piece_locations(Team::WHITE);
+    let mut input_occupied_locations = input_own_locations.clone(); 
+    for elem in input_opponent_locations.iter() {
+        input_occupied_locations.push(*elem); 
+    }
+    let smalliter= PreviousMoveIterator::new(input_occupied_locations, input_own_locations, input_opponent_locations, Some(11), case1); 
+    assert_eq!(smalliter.collect_vec().len(), 5); 
 }
