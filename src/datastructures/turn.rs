@@ -33,7 +33,10 @@ impl Encodable for Turn {
 
 impl Encodable for TurnAction {
     fn encode(&self) -> String {
-        todo!()
+        match self {
+            TurnAction::Move { from, to } => format!("M {from} {to}"),
+            TurnAction::Place { location } => format!("P {location}"),
+        }
     }
 
     fn decode(string: String) -> Self {

@@ -1,10 +1,7 @@
 use std::mem::size_of;
-use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::{thread, time};
 use std::time::SystemTime;
-use timer::{Timer};
-use chrono::Duration;
 use fnv::{FnvBuildHasher, FnvHashMap};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
@@ -28,22 +25,10 @@ type TranspositionTable = FnvHashMap<TranspositionTableKey, TranspositionTableVa
 
 impl Agent for MinimaxAgent {
     fn get_next_move(phase: Phase, team: Team, board: GameBoard, history: ()) -> Turn {
+        let start_time = SystemTime::now();
+
         let current_best_move: Option<Turn> = None;
         let current_best_move_mutex = Arc::new(Mutex::new(current_best_move));
-
-        let (final_return_tx, final_return_rx) = channel();
-
-        let timer = Timer::new();
-        let watchdog_best_move = Arc::clone(&current_best_move_mutex);
-        // The time watchdog returns the currently best result once time is running out
-        timer.schedule_with_delay(Duration::milliseconds(950), move || {
-            eprintln!("We used almost all remaining time (950ms). Return something.");
-
-            let current_best_move = watchdog_best_move.lock()
-                .unwrap().clone().expect("OH SHIT! I didn't find any best move. Now what?");
-
-            final_return_tx.send(current_best_move).unwrap();
-        });
 
         let runner_best_move = Arc::clone(&current_best_move_mutex);
         // Thread that executes minimax with iterative deepening
@@ -59,7 +44,7 @@ impl Agent for MinimaxAgent {
             eprintln!("Transposition table initialized");
 
             loop {
-                Self::mini_max(phase, team, board, 0, max_depth, ALPHA, BETA, &mut transposition_table, history, &runner_best_move);
+                Self::mini_max(phase, team, board, 0, max_depth, ALPHA, BETA, &mut transposition_table, history, Arc::clone(&runner_best_move));
                 eprintln!("Completed search with depth {}", max_depth);
                 if max_depth < u16::MAX {
                     max_depth += 1;
@@ -69,7 +54,18 @@ impl Agent for MinimaxAgent {
             }
         }).expect("Couldn't run minimax");
 
-        return final_return_rx.recv().unwrap();
+        // Wait until we used up most of the time
+        thread::sleep(time::Duration::from_millis(990));
+
+        let main_thread_best_move = Arc::clone(&current_best_move_mutex);
+        let current_best_move = main_thread_best_move.lock()
+            .expect("Expected there to be a best move, but there wasn't")
+            .clone().expect("OH SHIT! I didn't find any best move. Now what?");
+        // TODO: Choose any move if we didn't find a best move
+
+        eprintln!("Took {}ms", start_time.elapsed().unwrap().as_millis());
+
+        return current_best_move;
     }
 }
 
@@ -84,7 +80,7 @@ impl MinimaxAgent {
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
         history: (),
-        current_best_move_mutex: &Arc<Mutex<Option<Turn>>>
+        current_best_move_mutex: Arc<Mutex<Option<Turn>>>
     ) -> f32 {
         let opponent = team_to_maximize.get_opponent();
 
@@ -135,7 +131,7 @@ impl MinimaxAgent {
                     m,
                     transposition_table,
                     history,
-                    current_best_move_mutex
+                    Arc::clone(&current_best_move_mutex)
                 );
 
                 // Add the result to our transposition table
@@ -151,8 +147,7 @@ impl MinimaxAgent {
                 if result > m {
                     // Keep track of the best move (only on depth 1)
                     if depth == 1 {
-                        let mut current_best_move = current_best_move_mutex.lock().unwrap();
-                        *current_best_move = Some(turn);
+                        current_best_move_mutex.lock().unwrap().replace(turn);
                     }
 
                     if result >= beta {
