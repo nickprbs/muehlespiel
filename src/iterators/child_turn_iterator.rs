@@ -149,7 +149,9 @@ impl ChildTurnIterator {
         Some(result)
     }
 
-    fn asdf(&mut self, next_location: Location, origin_location: Location) -> Option<<ChildTurnIterator as Iterator>::Item> {
+    fn next_turn_with_or_without_taking(&mut self, next_location: Location, origin_location: Location) -> Option<<ChildTurnIterator as Iterator>::Item> {
+        self.moving_current_move_to_location = Some(next_location);
+
         let turn_without_taking = Turn {
             action: TurnAction::Move {
                 from: origin_location,
@@ -190,7 +192,7 @@ impl ChildTurnIterator {
                 if self.occupied_locations.contains(&next_location) {
                     return self.next_moving_turn();
                 }
-                self.asdf(next_location, origin_location)
+                self.next_turn_with_or_without_taking(next_location, origin_location)
             } else {
                 self.next_moving_turn()
             }
@@ -201,8 +203,8 @@ impl ChildTurnIterator {
 
     fn next_jumping_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
         if let Some(next_location) = self.moving_jump_to_iterator.next() {
-            self.moving_current_move_to_location = Some(next_location);
-            todo!()
+            let origin_location = self.own_locations[self.moving_current_to_be_moved_index];
+            self.next_turn_with_or_without_taking(next_location, origin_location)
         } else {
             self.next_origin_location_turn()
         }
@@ -211,9 +213,12 @@ impl ChildTurnIterator {
     fn next_origin_location_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
         // Go to next origin location, since we did all directions
         return if self.moving_current_to_be_moved_index < self.own_locations.len() - 1 {
-            self.moving_current_to_be_moved_index = self.moving_current_to_be_moved_index + 1;
+            self.moving_current_to_be_moved_index += 1;
+            let mut origin_location = self.own_locations[self.moving_current_to_be_moved_index];
             if self.moving_can_jump {
-                todo!()
+                let mut forbidden_fields = self.occupied_locations.clone();
+                forbidden_fields.append(&mut vec![origin_location]); // Don't move from field to same field
+                self.moving_jump_to_iterator = LocationIterator::with_forbidden(forbidden_fields);
             } else {
                 self.moving_direction_iterator = Direction::iter();
             }
@@ -239,16 +244,34 @@ impl ChildTurnIterator {
 
 #[test]
 fn test_child_turn_iterator_moving_simple() {
-    let case = GameBoard::from([
-        0b0101010101010101, // All black
-        0b1000101010101010, // All white but one (only moves: 9 -> 10 or 11 -> 10)
-        0b0101010101010101, // All black
-    ]);
+    let case = GameBoard::decode(String::from(
+        concat!(
+        "WWWWEEEE",
+        "BEBEEEEE",
+        "EEEEEEEE",
+        )
+    ));
     assert!(list_equality(
         ChildTurnIterator::new(Phase::MOVE, Team::WHITE, case).collect::<Vec<Turn>>(),
         vec![
-            Turn { action: TurnAction::Move { from: 9, to: 10 }, take_from: None },
-            Turn { action: TurnAction::Move { from: 11, to: 10 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 1, to: 8 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 4, to: 5 }, take_from: None },
+        ]
+    ));
+
+    let case = GameBoard::decode(String::from(
+        concat!(
+            "BBBBBBBB",
+            "EWWWWWWW",
+            "WBBBBBWB",
+        )
+    ));
+    assert!(list_equality(
+        ChildTurnIterator::new(Phase::MOVE, Team::WHITE, case).collect::<Vec<Turn>>(),
+        vec![
+            Turn { action: TurnAction::Move { from: 17, to: 9 }, take_from: Some(24) },
+            Turn { action: TurnAction::Move { from: 16, to: 9 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 10, to: 9 }, take_from: None },
         ]
     ));
 
@@ -261,9 +284,17 @@ fn test_child_turn_iterator_moving_simple() {
         ChildTurnIterator::new(Phase::MOVE, Team::WHITE, case).collect::<Vec<Turn>>(),
         vec![
             Turn { action: TurnAction::Move { from: 11, to: 12 }, take_from: Some(10) },
-            Turn { action: TurnAction::Move { from: 13, to: 12 }, take_from: Some(10) },
+            Turn { action: TurnAction::Move { from: 13, to: 12 }, take_from: None },
         ]
     ));
+}
+
+#[test]
+fn test_child_turn_iterator_testset_samples() {
+    let case = GameBoard::decode(String::from("BEEEEWWBBEWEWWEEBEBWEBEW"));
+    let turns = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, case).dedup().collect::<Vec<Turn>>();
+    dbg!(turns.clone());
+    assert_eq!(11, turns.len());
 }
 
 #[test]

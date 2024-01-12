@@ -530,6 +530,10 @@ fn test_is_mill_at() {
     assert!(case1.is_mill_at(23, &case1_black, &case1_white));
     assert!(!case1.is_mill_at(15, &case1_black, &case1_white));
     assert!(case1.is_mill_at(24, &case1_black, &case1_white));
+    assert!(case1.is_mill_at3(18));
+    assert!(case1.is_mill_at3(23));
+    assert!(!case1.is_mill_at3(15));
+    assert!(case1.is_mill_at3(24));
 
     assert!(!case2.is_mill_at(1, &case2_black, &case2_white));
     assert!(!case2.is_mill_at(5, &case2_black, &case2_white));

@@ -111,3 +111,23 @@ fn test_location_wrapping() {
     let actual = 12.add_wrapping_in_ring(-5);
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn test_apply_direction() {
+    assert_eq!(
+        1,
+        8.apply_direction(Direction::Clockwise).unwrap()
+    );
+    assert_eq!(
+        7,
+        8.apply_direction(Direction::CounterClockwise).unwrap()
+    );
+    assert_eq!(
+        None,
+        8.apply_direction(Direction::Inward)
+    );
+    assert_eq!(
+        None,
+        1.apply_direction(Direction::Outward)
+    );
+}
