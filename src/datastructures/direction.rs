@@ -1,11 +1,33 @@
 use crate::datastructures::direction::Direction::{Clockwise, CounterClockwise, Inward, Outward};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Direction {
     Clockwise,
     CounterClockwise,
     Inward,
     Outward
+}
+
+pub struct DirectionIter {
+    current_direction: Option<Direction>
+}
+
+impl Iterator for DirectionIter {
+    type Item = Direction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.current_direction;
+
+        self.current_direction = match self.current_direction {
+            None => None,
+            Some(Clockwise) => Some(CounterClockwise),
+            Some(CounterClockwise) => Some(Inward),
+            Some(Inward) => Some(Outward),
+            Some(Outward) => None
+        };
+
+        result
+    }
 }
 
 impl Direction {
@@ -18,7 +40,9 @@ impl Direction {
         }
     }
 
-    pub fn iter() -> impl Iterator<Item=Direction> {
-        [Clockwise, CounterClockwise, Inward, Outward].into_iter()
+    pub fn iter() -> DirectionIter {
+        DirectionIter {
+            current_direction: Some(Clockwise)
+        }
     }
 }

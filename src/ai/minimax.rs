@@ -11,7 +11,7 @@ use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
 use crate::datastructures::{Encodable, GameBoard, Phase, Team, Turn};
 use crate::datastructures::game_board::UsefulGameBoard;
-use crate::datastructures::Team::{WHITE, BLACK};
+use crate::datastructures::Team::WHITE;
 use crate::iterators::ChildTurnIterator;
 
 pub struct MinimaxAgent {}
@@ -60,7 +60,7 @@ impl Agent for MinimaxAgent {
 
             loop {
                 Self::mini_max(phase, team, board, 0, max_depth, ALPHA, BETA, &mut transposition_table, history, &runner_best_move);
-                eprintln!("Completed search with max depth {}", max_depth);
+                eprintln!("Completed search with depth {}", max_depth);
                 if max_depth < u16::MAX {
                     max_depth += 1;
                 } else {

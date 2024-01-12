@@ -49,17 +49,26 @@ pub trait UsefulGameBoard {
     // Returns true if the given Location is part of any mill. Using the location vectors as arguments is more efficient
     // in more complex tasks, becuase they then need to be calculated only once.
     fn is_mill_at(&self, location: Location, black_locations:&Vec<u8>, white_locations:&Vec<u8>) -> bool;
+    fn is_mill_at2(location: Location, black_locations: &Vec<Location>, white_locations: &Vec<Location>) -> bool {
+        GameBoard::from([0; 3]).is_mill_at(location, black_locations, white_locations)
+    }
+    fn is_mill_at3(&self, location: Location) -> bool {
+        let black_locations = self.get_piece_locations(Team::BLACK);
+        let white_locations = self.get_piece_locations(Team::WHITE);
+        self.is_mill_at(location, &black_locations, &white_locations)
+    }
+
     fn has_only_mills(&self, team: Team) -> bool;
     fn get_num_pieces(&self, team: Team) -> u8;
     fn get_piece_locations(&self, team: Team) -> Vec<Location>;
-    fn get_team_at(&self, location: Location) -> Option<Team>; 
-    fn get_free_neighbours(&self, location: Location) -> Vec<Location>; 
-    
-    
-    // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a 
+    fn get_team_at(&self, location: Location) -> Option<Team>;
+    fn get_free_neighbours(&self, location: Location) -> Vec<Location>;
+
+
+    // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a
     // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
-    // stone in the CURRENT gameboard. 
-    fn calc_previous_possibilities_amount (&self, _location: Location) -> u16; 
+    // stone in the CURRENT gameboard.
+    fn calc_previous_possibilities_amount (&self, _location: Location) -> u16;
 }
 
 impl UsefulGameBoard for GameBoard {
@@ -300,13 +309,13 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn has_only_mills(&self, team: Team) -> bool {
-        let team_vector = self.get_piece_locations(team); 
+        let team_vector = self.get_piece_locations(team);
         let black_locations = self.get_piece_locations(Team::BLACK);
-        let white_locations = self.get_piece_locations(Team::WHITE); 
+        let white_locations = self.get_piece_locations(Team::WHITE);
         if team_vector.iter().all(|location| self.is_mill_at(*location, &black_locations, &white_locations)) {
-            return true 
+            return true
         } else {
-            return false 
+            return false
         }
     }
 
@@ -355,8 +364,8 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn get_team_at(&self, location: Location) -> Option<Team> {
-        let (ring, angle) = location.to_ring_and_angle(); 
-        let ( higher, lower) = ( (self[ring as usize] & (1*2_u16.pow((15-2*angle) as u32))).count_ones() , 
+        let (ring, angle) = location.to_ring_and_angle();
+        let ( higher, lower) = ( (self[ring as usize] & (1*2_u16.pow((15-2*angle) as u32))).count_ones() ,
                                         (self[ring as usize] & (1*2_u16.pow((14-2*angle) as u32)) ).count_ones());
         let team: Option<Team> = match (higher, lower) {
             (0,1) => Some(Team::BLACK),
@@ -364,34 +373,34 @@ impl UsefulGameBoard for GameBoard {
             (0,0) => None,
             _ => panic!("Invalid team ")
         };
-        team 
+        team
     }
 
-    // panics if the location is empty 
+    // panics if the location is empty
     fn get_free_neighbours(&self, location: Location) -> Vec<Location> {
         let mut free_neighbours: Vec<u8> = Vec::new();
-        let team = self.get_team_at(location).expect("Can't calculate neighbours on an empty field!"); 
-        let lookup_vec = self.get_piece_locations(team); 
+        let team = self.get_team_at(location).expect("Can't calculate neighbours on an empty field!");
+        let lookup_vec = self.get_piece_locations(team);
         if lookup_vec.len() <= 3 {
              free_neighbours = (1..=24).into_iter().filter(|field| !self.is_occupied(*field)).collect_vec();
         } else {
              free_neighbours = NeighboursIterator::new(vec![location])
             .filter(|neighbour| !self.is_occupied(*neighbour)).collect_vec();
         }
-        free_neighbours 
+        free_neighbours
     }
 
     fn calc_previous_possibilities_amount (&self, _location: Location) -> u16 {
-        let mut output: u16 = 0; 
-        let _team = self.get_team_at(_location); 
+        let mut output: u16 = 0;
+        let _team = self.get_team_at(_location);
         match _team {
             //if the field is empty there are no possible moves
             None => {return output },
             Some(_) => {}
         }
-        let _team = _team.unwrap(); 
-        let free_neighbours = self.get_free_neighbours(_location); 
-        let mill_flag = self.is_mill_at(_location, &self.get_piece_locations(Team::BLACK), 
+        let _team = _team.unwrap();
+        let free_neighbours = self.get_free_neighbours(_location);
+        let mill_flag = self.is_mill_at(_location, &self.get_piece_locations(Team::BLACK),
             &self.get_piece_locations(Team::WHITE));
         //current stone is part of a mill => previous move could have been closing it with this stone
         if mill_flag {
@@ -402,7 +411,7 @@ impl UsefulGameBoard for GameBoard {
         }
 
 
-        output 
+        output
     }
 
 }
@@ -474,10 +483,10 @@ fn test_is_game_done() {
 #[test]
 fn test_get_team_at() {
     let string = String::from("BWEEEEEWWEEEEEWWBBWEWBBB");
-    let case = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB")); 
+    let case = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB"));
     let mut counter = 0;
     for char in string.chars(){
-        counter += 1; 
+        counter += 1;
         if char == 'B' {
             assert_eq!(case.get_team_at(counter), Some(Team::BLACK));
         } else if char == 'W' {
@@ -491,7 +500,7 @@ fn test_get_team_at() {
 #[test]
 fn test_get_free_neighbours () {
     let case = GameBoard::decode(String::from("BWEEEEEWWEEEEEWWBBWEWBBB"));
-    assert_eq!(case.get_free_neighbours(1), Vec::new()); 
+    assert_eq!(case.get_free_neighbours(1), Vec::new());
     assert_eq!(case.get_free_neighbours(19), vec![20,11]);
 }
 
@@ -531,13 +540,20 @@ fn test_is_mill_at() {
     assert!(case3.is_mill_at(2, &case3_black, &case3_white));
     assert!(!case3.is_mill_at(24, &case3_black, &case3_white));
 
+    let case4 = GameBoard::decode(String::from("EEEEEEEEWEBWWWWWEEEEEEEE"));
+    let case4_black = case4.get_piece_locations(Team::BLACK);
+    let case4_white = case4.get_piece_locations(Team::WHITE);
+    assert!(!case4.is_mill_at(9, &case4_black, &case4_white));
+    assert!(!case4.is_mill_at(11, &case4_black, &case4_white));
+    assert!(case4.is_mill_at(12, &case4_black, &case4_white));
+    assert!(case4.is_mill_at(13, &case4_black, &case4_white));
 }
 
 #[test]
 fn test_has_only_mills () {
     let case1 = GameBoard::decode(String::from("EWEEEEEWWEEEEEWWBBWEWBBB"));
-    assert!(case1.has_only_mills(Team::BLACK)); 
-    assert!(!case1.has_only_mills(Team::WHITE)); 
+    assert!(case1.has_only_mills(Team::BLACK));
+    assert!(!case1.has_only_mills(Team::WHITE));
 }
 
 impl Encodable for GameBoard {

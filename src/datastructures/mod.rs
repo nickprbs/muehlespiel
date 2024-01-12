@@ -15,5 +15,6 @@ pub use crate::datastructures::{
     location::Location as Location,
     location::GameBoardLocation as GameBoardLocation,
     direction::Direction as Direction,
+    direction::DirectionIter as DirectionIter,
     phase::Phase as Phase,
 };
