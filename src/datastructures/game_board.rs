@@ -1,9 +1,8 @@
-use std::collections::HashSet;
 use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
 use itertools::Itertools;
 use crate::datastructures::turn::TurnAction;
-use super::{GameBoardLocation, Location, Team, Turn, team};
+use super::{GameBoardLocation, Location, Team, Turn};
 use crate::iterators::{BoardEquivalenceClassIterator, NeighboursIterator};
 use super::Encodable;
 
