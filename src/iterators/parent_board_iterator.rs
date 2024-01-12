@@ -128,6 +128,7 @@ impl Iterator for PreviousMoveIterator {
                         if self.lookup.contains_key(&temp_board) {
                             return self.next() 
                         } else {
+                            self.lookup.insert(temp_board, true); 
                             return Some(temp_board) 
                         }
                         // case 2: other player had at least one mill but not only mills 
@@ -145,6 +146,7 @@ impl Iterator for PreviousMoveIterator {
                             if self.lookup.contains_key(&temp_board) {
                                 return self.next() 
                             } else {
+                                self.lookup.insert(temp_board, true); 
                                 return Some(temp_board) 
                             }
                         }
@@ -164,6 +166,7 @@ impl Iterator for PreviousMoveIterator {
                 if self.lookup.contains_key(&temp_board) {
                     return self.next()
                 } else {
+                    self.lookup.insert(temp_board, true); 
                     return Some(temp_board)
                 }
             }

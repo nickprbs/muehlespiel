@@ -43,10 +43,3 @@ fn past_main() -> Result<(), Error> {
     Ok(())
 }
 
-fn enumerate_lost_positions() -> u64 {
-    let lost_by_cant_move_map = lost_positions_by_cant_move();
-    let lost_by_pieces_taken_map = lost_positions_by_pieces_taken();
-
-    let mut sum: u64 = lost_by_pieces_taken_map.len() as u64 + lost_by_cant_move_map.len() as u64;
-    sum
-}
