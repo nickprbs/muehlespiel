@@ -190,7 +190,7 @@ impl ChildTurnIterator {
                 if self.occupied_locations.contains(&next_location) {
                     return self.next_moving_turn();
                 }
-                asdf(next_location, origin_location)
+                self.asdf(next_location, origin_location)
             } else {
                 self.next_moving_turn()
             }
