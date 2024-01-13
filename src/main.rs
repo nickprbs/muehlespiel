@@ -28,8 +28,6 @@ fn ai_mode() {
         std::io::stdin().read_line(&mut input).expect("Failed to read line");
         let mut input_pieces: Vec<&str> = input.trim().split(" ").collect();
 
-        num_invocations += 2; // Add two, since the opponent was queried inbetween
-
         let phase = match input_pieces[0] {
             "M" => Phase::MOVE,
             "P" => Phase::PLACE,
@@ -59,6 +57,8 @@ fn ai_mode() {
             // Add the board we produced to the history
             history.increment(board.apply(result, team));
         }
+
+        num_invocations += 2; // Add two, since the opponent was queried inbetween
     }
 }
 

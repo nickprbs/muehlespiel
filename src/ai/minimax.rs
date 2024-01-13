@@ -15,8 +15,8 @@ use crate::iterators::ChildTurnIterator;
 pub struct MinimaxAgent {}
 
 const DEPTH_LIMIT: u16 = u16::MAX;
-const ALPHA: f32 = f32::MIN;//1.1;
-const BETA: f32 = f32::MAX;//2.5;
+const ALPHA: f32 = 1.1;
+const BETA: f32 = 2.5;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 struct  TranspositionTableKey (u16, Turn);
@@ -67,7 +67,7 @@ impl Agent for MinimaxAgent {
                         Arc::clone(&history),
                         Arc::clone(&runner_best_move)
                     );
-                    eprintln!("Completed search with max depth {}", max_depth);
+                    //eprintln!("Completed search with max depth {}", max_depth);
                     if max_depth < DEPTH_LIMIT {
                         max_depth += 1;
                     } else {
