@@ -68,6 +68,7 @@ pub trait UsefulGameBoard {
     // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
     // stone in the CURRENT gameboard.
     fn calc_previous_possibilities_amount (&self, _location: Location) -> u16;
+    fn has_lost(&self, team: Team) -> bool;
 }
 
 impl UsefulGameBoard for GameBoard {
@@ -234,20 +235,17 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn is_game_done(&self) -> bool {
-        let by_pieces_taken = [Team::WHITE, Team::BLACK].into_iter()
-            .any(|team| self.get_num_pieces(team) <= 2);
+        self.has_lost(Team::BLACK) || self.has_lost(Team::WHITE)
+    }
 
-        let can_white_not_move = NeighboursIterator::new(self.get_piece_locations(Team::WHITE))
-            .filter(|neighbour| { !self.is_occupied(*neighbour) })
-            .dedup()
-            .take(1) // Little optimization. Since we only care if there is at least one, just check if there is one.
-            .count() == 0;
-        let can_black_not_move = NeighboursIterator::new(self.get_piece_locations(Team::BLACK))
+    fn has_lost(&self, team: Team) -> bool {
+        let by_pieces_taken = self.get_num_pieces(team) <= 2;
+
+        let by_cant_move = NeighboursIterator::new(self.get_piece_locations(team))
             .filter(|neighbour| { !self.is_occupied(*neighbour) })
             .dedup()
             .take(1)
             .count() == 0;
-        let by_cant_move = can_white_not_move || can_black_not_move;
 
         by_pieces_taken || by_cant_move
     }
