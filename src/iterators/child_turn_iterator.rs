@@ -290,11 +290,20 @@ fn test_child_turn_iterator_moving_simple() {
 }
 
 #[test]
-fn test_child_turn_iterator_testset_samples() {
-    let case = GameBoard::decode(String::from("BEEEEWWBBEWEWWEEBEBWEBEW"));
-    let turns = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, case).dedup().collect::<Vec<Turn>>();
+fn test_child_turn_iterator_select_samples() {
+    let case = GameBoard::decode(String::from("BEEEEWWBBWEEWEWEBEEWEBWE"));
+    let turns = ChildTurnIterator::new(Phase::MOVE, Team::BLACK, case).dedup().collect::<Vec<Turn>>();
     dbg!(turns.clone());
-    assert_eq!(11, turns.len());
+    assert!(list_equality(
+        turns,
+        vec![
+            Turn { action: TurnAction::Move { from: 1, to: 2 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 9, to: 16 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 17, to: 18 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 17, to: 24 }, take_from: None },
+            Turn { action: TurnAction::Move { from: 22, to: 21 }, take_from: None },
+        ]
+    ));
 }
 
 #[test]

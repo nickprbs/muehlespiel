@@ -5,6 +5,7 @@ mod team;
 mod location;
 mod direction;
 mod phase;
+mod history;
 
 pub use crate::datastructures::{
     encodable::Encodable as Encodable,
@@ -17,4 +18,6 @@ pub use crate::datastructures::{
     direction::Direction as Direction,
     direction::DirectionIter as DirectionIter,
     phase::Phase as Phase,
+    history::BoardHistoryMap as BoardHistoryMap,
+    history::BoardHistory as BoardHistory
 };

@@ -7,15 +7,16 @@ use fnv::{FnvBuildHasher, FnvHashMap};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
-use crate::datastructures::{Encodable, GameBoard, Phase, Team, Turn};
+use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team, Turn};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::datastructures::Team::WHITE;
 use crate::iterators::ChildTurnIterator;
 
 pub struct MinimaxAgent {}
 
-const ALPHA: f32 = 0.1;
-const BETA: f32 = 1.6;
+const GLOBAL_MAX_DEPTH: u16 = u16::MAX;
+const ALPHA: f32 = f32::MIN;//1.1;
+const BETA: f32 = 2.5;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 struct  TranspositionTableKey (u16, Turn);
@@ -25,7 +26,7 @@ const TRANSPOSITION_TABLE_CAPACITY: usize = 100_000_000; // 1,000,000,000 is rou
 type TranspositionTable = FnvHashMap<TranspositionTableKey, TranspositionTableValue>;
 
 impl Agent for MinimaxAgent {
-    fn get_next_move(phase: Phase, team: Team, board: GameBoard, history: ()) -> Turn {
+    fn get_next_move(phase: Phase, team: Team, board: GameBoard, history: Arc<Mutex<impl BoardHistory + 'static>>) -> Turn {
         let start_time = SystemTime::now();
 
         let (kill_signal_tx, kill_signal_rx) = channel();
@@ -48,16 +49,17 @@ impl Agent for MinimaxAgent {
 
                 // While we didn't receive a kill signal
                 while !kill_signal_rx.try_recv().is_ok() {
-                    Self::mini_max(phase, team.get_opponent(), board, 0, max_depth, ALPHA, BETA, &mut transposition_table, history, Arc::clone(&runner_best_move));
-                    eprintln!("Completed search with depth {}", max_depth);
-                    if max_depth < u16::MAX {
+                    Self::mini_max(phase, team, board, 0, max_depth, ALPHA, BETA, &mut transposition_table, Arc::clone(&history), Arc::clone(&runner_best_move));
+                    eprintln!("Completed search with max depth {}", max_depth);
+                    if max_depth < GLOBAL_MAX_DEPTH {
                         max_depth += 1;
                     } else {
+                        eprintln!("Reached maximum depth");
                         break;
                     }
                 }
 
-                eprintln!("Minimax runner stopped because received kill signal");
+                eprintln!("Minimax runner stopped");
             }).expect("Couldn't run minimax");
 
         // Wait until we used up most of the time
@@ -74,7 +76,8 @@ impl Agent for MinimaxAgent {
         eprintln!("Took {}ms", start_time.elapsed().unwrap().as_millis());
 
         // Tell the runner that its time to stop
-        kill_signal_tx.send(()).unwrap();
+        // Ignore failures, since the thread could stop earlier, if it reached max depth for example
+        let _ = kill_signal_tx.send(());
 
         return current_best_move;
     }
@@ -90,15 +93,13 @@ impl MinimaxAgent {
         alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
-        history: (),
+        history: Arc<Mutex<impl BoardHistory>>,
         current_best_move_mutex: Arc<Mutex<Option<Turn>>>
     ) -> f32 {
         let opponent = team_to_maximize.get_opponent();
 
-        if /*TODO: history.is_tie(board)*/ false {
-            return 0.1; // There is not much value in making a tie
-        } else if depth == max_depth || board.is_game_done() {
-            return evaluate_position(team_to_maximize, board, depth);
+        return if depth == max_depth || board.is_game_done() {
+            evaluate_position(team_to_maximize, phase, board, depth, history)
         } else {
             let turns = ChildTurnIterator::new(
                 phase,
@@ -108,10 +109,10 @@ impl MinimaxAgent {
                 // TODO: Test if sorting works
                 // Reverse, since we want to try those with higher evaluations first, so that pruning is more effective
                 transposition_table.get(&TranspositionTableKey(depth, turn_b.clone()))
-                    .unwrap_or(&0.1_f32)
+                    .unwrap_or(&1.7_f32)
                     .partial_cmp(
                         transposition_table.get(&TranspositionTableKey(depth, turn_a.clone()))
-                            .unwrap_or(&0.1_f32)
+                            .unwrap_or(&1.7_f32)
                     )
                     .unwrap()
             });
@@ -132,7 +133,7 @@ impl MinimaxAgent {
                     },
                 };
 
-                let result = -Self::mini_max(
+                let result = 3.0 - Self::mini_max(
                     new_phase,
                     opponent,
                     new_board,
@@ -141,7 +142,7 @@ impl MinimaxAgent {
                     -beta,
                     m,
                     transposition_table,
-                    history,
+                    history.clone(),
                     Arc::clone(&current_best_move_mutex)
                 );
 
@@ -157,24 +158,28 @@ impl MinimaxAgent {
 
                 if result > m {
                     // Keep track of the best move (only on depth 1)
-                    if depth == 1 {
+                    if depth == 0 {
                         let mut current_best_move = current_best_move_mutex.lock().unwrap();
                         if !current_best_move.eq(&Some(turn.clone())) {
-                            eprintln!("Replacing current best move");
+                            let last_best = current_best_move.clone();
+                            match last_best {
+                                Some(last_best) => eprintln!("Replacing current best move ({}) with new: {} (result: {result})", last_best.encode(), turn.encode()),
+                                None => eprintln!("Setting initial best move to {} (result: {result})", turn.encode()),
+                            };
                             current_best_move.replace(turn);
                         }
                     }
 
+                    m = result;
+
                     if result >= beta {
                         // We found a really good turn! Let's return it immediately.
                         break;
-                    } else {
-                        m = result;
                     }
                 }
             }
 
-            return m;
+            m
         }
     }
 }
@@ -185,8 +190,8 @@ fn test_time_bounds() {
     MinimaxAgent::get_next_move(
         Phase::MOVE,
         WHITE,
-        GameBoard::decode(String::from("EEEEEEEEEEEEEEEEEEEEEEEE")),
-        ()
+        GameBoard::decode(String::from("WWWBBBEEEEEEEEEEEEEEEEEE")),
+        Arc::new(Mutex::new(BoardHistoryMap::default()))
     );
     let duration = SystemTime::now().duration_since(start).expect("Time went backwards");
 
