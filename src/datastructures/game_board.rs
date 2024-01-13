@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
+use std::vec;
 use itertools::Itertools;
 use crate::datastructures::turn::TurnAction;
 use super::{GameBoardLocation, Location, Team, Turn};
@@ -63,6 +65,7 @@ pub trait UsefulGameBoard {
     fn get_team_at(&self, location: Location) -> Option<Team>;
     fn get_free_neighbours(&self, location: Location) -> Vec<Location>;
 
+    fn print_board(&self);
 
     // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a
     // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
@@ -410,9 +413,73 @@ impl UsefulGameBoard for GameBoard {
 
         output
     }
+    fn print_board(&self) {
+        let mut black = self.get_piece_locations(Team::BLACK);
+        let mut white =self.get_piece_locations(Team::WHITE);
+        let mut board:HashMap<u8,String>= HashMap::default();
+        for i in 1..=24{
+            board.insert(i, "E".to_string());
+        }
+        for b in black{
+            board.insert(b, "B".to_string());
+        }
+        for w in white {
+            board.insert(w, "W".to_string());
+        }
+        let a = board.get(&8).unwrap();
+        let b = board.get(&1).unwrap();
+        let c = board.get(&2).unwrap();
+        println!("{}------------{}------------{}", a, b, c);
+        println!("|            |            |");
+
+        let a = board.get(&16).unwrap();
+        let b = board.get(&9).unwrap();
+        let c  = board.get(&10).unwrap();
+        println!("|   {}--------{}--------{}   |", a, b, c);
+        println!("|   |        |        |   |");
+
+        let a  = board.get(&24).unwrap();
+        let b  = board.get(&17).unwrap();
+        let c  = board.get(&18).unwrap();
+        println!("|   |   {}----{}----{}   |   |", a, b, c);
+        println!("|   |   |         |   |   |");
+
+        let a  = board.get(&7).unwrap();
+        let b  = board.get(&15).unwrap();
+        let c  = board.get(&23).unwrap();
+        let d  = board.get(&19).unwrap();
+        let e  = board.get(&11).unwrap();
+        let f  = board.get(&3).unwrap();
+        println!("{}---{}---{}         {}---{}---{}", a, b, c, d, e, f);
+        println!("|   |   |         |   |   |");
+
+        let a  = board.get(&22).unwrap();
+        let b  = board.get(&21).unwrap();
+        let c  = board.get(&20).unwrap();
+        println!("|   |   {}----{}----{}   |   |", a, b, c);
+
+        println!("|   |        |        |   |");
+        let a  = board.get(&14).unwrap();
+        let b  = board.get(&13).unwrap();
+        let c  = board.get(&12).unwrap();
+        println!("|   {}--------{}--------{}   |", a, b, c);
+
+        println!("|            |            |");
+        let a  = board.get(&6).unwrap();
+        let b  = board.get(&5).unwrap();
+        let c  = board.get(&4).unwrap();
+        println!("{}------------{}------------{}", a, b, c);
+    }
 
 }
 
+#[test]
+fn print_board_test(){
+    let black_pieces = vec![1,2, 3, 7, 10];
+    let white_pieces = vec![4, 24, 23, 9];
+    let actual_game_board = GameBoard::from_pieces(black_pieces, white_pieces);
+    actual_game_board.print_board();
+}
 #[test]
 fn test_game_board_from_pieces() {
     let black_pieces = vec![1,2, 3, 7, 10];
