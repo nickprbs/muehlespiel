@@ -102,10 +102,10 @@ impl ChildTurnIterator {
                 action: TurnAction::Place {
                     location: self.placing_current_location.unwrap()
                 },
-                take_from: Some(self.opponent_locations[to_be_taken_index])
+                take_from: Some(self.takeable_opponent_locations[to_be_taken_index])
             };
 
-            if to_be_taken_index < self.opponent_locations.len() - 1 {
+            if to_be_taken_index < self.takeable_opponent_locations.len() - 1 {
                 self.current_to_be_taken_index = Some(to_be_taken_index + 1);
             } else {
                 self.current_to_be_taken_index = None;
@@ -351,6 +351,22 @@ fn test_child_turn_iterator_select_samples() {
         take_from: None
     }));
     assert_eq!(turns.len(), 21);
+
+    let case = GameBoard::decode(String::from("BWEBBEEEBEEEWEEWEEEEEWWW"));
+    let turns = ChildTurnIterator::new(Phase::PLACE, Team::BLACK, case).dedup().collect::<Vec<Turn>>();
+    dbg!(turns.clone());
+    assert!(!turns.contains(&Turn{
+        action: TurnAction::Place { location: 6 },
+        take_from: Some(24)
+    }));
+    assert!(!turns.contains(&Turn{
+        action: TurnAction::Place { location: 6 },
+        take_from: Some(23)
+    }));
+    assert!(!turns.contains(&Turn{
+        action: TurnAction::Place { location: 6 },
+        take_from: Some(22)
+    }));
 }
 
 #[test]
