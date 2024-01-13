@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use itertools::Itertools;
-use crate::datastructures::{BoardHistory, Encodable, GameBoard, Phase, Team};
+use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::iterators::ChildTurnIterator;
 
@@ -86,12 +86,12 @@ fn test_evaluating_wins() {
     // Test different depths
     let case_white_won = GameBoard::decode(String::from("BBWWWEEEEEEEEEEEEEEEEEEE"));
     assert!(
-        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1) > evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 2)
+        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default()))) > evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 2, Arc::new(Mutex::new(BoardHistoryMap::default())))
     );
 
     // Test won vs non-won
     let case_black_won = GameBoard::decode(String::from("BBBWWEEEEEEEEEEEEEEEEEEE"));
     assert!(
-        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1) > evaluate_position(Team::WHITE, Phase::MOVE, case_black_won, 1)
+        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default()))) > evaluate_position(Team::WHITE, Phase::MOVE, case_black_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default())))
     )
 }

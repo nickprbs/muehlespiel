@@ -27,6 +27,10 @@ impl Iterator for NeighboursIterator {
     type Item = Location;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.locations.len() == 0 {
+            return None;
+        }
+
         if let None = self.current_location {
             self.current_location = self.locations_iter.next();
             return self.next();

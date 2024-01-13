@@ -244,6 +244,7 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn has_lost(&self, team: Team) -> bool {
+        let is_empty_board = self[0] == 0 && self[1] == 0 && self[2] == 0;
         let by_pieces_taken = self.get_num_pieces(team) <= 2;
 
         let by_cant_move = NeighboursIterator::new(self.get_piece_locations(team))
@@ -252,7 +253,7 @@ impl UsefulGameBoard for GameBoard {
             .take(1)
             .count() == 0;
 
-        by_pieces_taken || by_cant_move
+        !is_empty_board && (by_pieces_taken || by_cant_move)
     }
 
     fn is_occupied(&self, location: Location) -> bool {

@@ -12,7 +12,9 @@ pub struct ChildTurnIterator {
     own_locations: Vec<Location>,
     opponent_locations: Vec<Location>,
     takeable_opponent_locations: Vec<Location>,
+    current_to_be_taken_index: Option<usize>,
 
+    placing_locations_iterator: LocationIterator,
     placing_current_location: Option<Location>,
 
     moving_current_to_be_moved_index: usize,
@@ -20,7 +22,6 @@ pub struct ChildTurnIterator {
     moving_jump_to_iterator: LocationIterator,
     moving_current_move_to_location: Option<Location>,
     moving_direction_iterator: DirectionIter,
-    moving_current_to_be_taken_index: Option<usize>,
 }
 
 impl ChildTurnIterator {
@@ -30,18 +31,16 @@ impl ChildTurnIterator {
 
         let mut occupied_locations = own_locations.clone();
         occupied_locations.append(&mut opponent_locations.clone());
-        let free_locations = (1_u8..=24_u8)
-            .filter(|loc| { !occupied_locations.contains(loc) });
 
         let takeable_opponent_locations = Self::calculate_takeables(opponent_locations.clone());
 
-        let first_free_location: Option<Location> = free_locations.into_iter()
-            .sorted()
-            .nth(0);
+        let free_locations_iterator: LocationIterator = LocationIterator::with_forbidden(occupied_locations.clone());
 
         let can_jump = own_locations.len() <= 3;
         let mut forbidden_to_jump_to = occupied_locations.clone();
-        forbidden_to_jump_to.append(&mut vec![own_locations[0]]);
+        if own_locations.len() > 0 {
+            forbidden_to_jump_to.append(&mut vec![own_locations[0]]);
+        }
         let jump_to_iterator = LocationIterator::with_forbidden(forbidden_to_jump_to);
 
         Self {
@@ -52,15 +51,16 @@ impl ChildTurnIterator {
             own_locations,
             opponent_locations,
             takeable_opponent_locations,
+            current_to_be_taken_index: None,
 
-            placing_current_location: first_free_location,
+            placing_locations_iterator: free_locations_iterator,
+            placing_current_location: None,
 
             moving_current_to_be_moved_index: 0,
             moving_can_jump: can_jump,
             moving_jump_to_iterator: jump_to_iterator,
             moving_current_move_to_location: None,
             moving_direction_iterator: Direction::iter(),
-            moving_current_to_be_taken_index: None
         }
     }
 }
@@ -97,26 +97,48 @@ impl ChildTurnIterator {
     }
 
     fn next_placing_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
-        match self.placing_current_location {
-            None => None,
-            Some(current_location) => {
-                let turn = Turn {
-                    action: TurnAction::Place { location: current_location },
-                    take_from: None,
-                };
+        if let Some(to_be_taken_index) = self.current_to_be_taken_index {
+            let turn = Turn {
+                action: TurnAction::Place {
+                    location: self.placing_current_location.unwrap()
+                },
+                take_from: Some(self.opponent_locations[to_be_taken_index])
+            };
 
-                self.placing_current_location = if current_location < 24 {
-                    Some(current_location + 1)
-                } else { None };
+            if to_be_taken_index < self.opponent_locations.len() - 1 {
+                self.current_to_be_taken_index = Some(to_be_taken_index + 1);
+            } else {
+                self.current_to_be_taken_index = None;
+            }
 
-                Some(turn)
+            return Some(turn);
+        } else {
+            let next_location = self.placing_locations_iterator.next();
+
+            match next_location {
+                None => None,
+                Some(next_location) => {
+                    let turn_without_taking = Turn {
+                        action: TurnAction::Place { location: next_location },
+                        take_from: None
+                    };
+                    let new_board = self.board.apply(turn_without_taking.clone(), self.team);
+
+                    if new_board.is_mill_at3(next_location) && self.takeable_opponent_locations.len() > 0 {
+                        self.placing_current_location = Some(next_location);
+                        self.current_to_be_taken_index = Some(0);
+                        self.next_placing_turn()
+                    } else {
+                        Some(turn_without_taking)
+                    }
+                }
             }
         }
     }
 
     fn next_moving_turn(&mut self) -> Option<<ChildTurnIterator as Iterator>::Item> {
         // We're currently enumerating different positions to take
-        if let Some(to_be_taken_index) = self.moving_current_to_be_taken_index {
+        if let Some(to_be_taken_index) = self.current_to_be_taken_index {
             self.next_taking_move(to_be_taken_index)
         // Go in next direction/jump to next location or go to next origin location
         } else {
@@ -139,7 +161,7 @@ impl ChildTurnIterator {
             take_from: Some(self.takeable_opponent_locations[to_be_taken_index]),
         };
 
-        self.moving_current_to_be_taken_index =
+        self.current_to_be_taken_index =
             if (to_be_taken_index + 1) < self.takeable_opponent_locations.len() {
                 Some(to_be_taken_index + 1)
             } else {
@@ -169,7 +191,7 @@ impl ChildTurnIterator {
 
             if new_board.is_mill_at3(next_location) {
                 self.set_up_taking();
-                self.moving_current_to_be_taken_index = Some(0);
+                self.current_to_be_taken_index = Some(0);
                 // We can take a piece, so in next recursive call, the first block (enumerating take) will execute
                 self.next_moving_turn()
             } else {
@@ -235,9 +257,9 @@ impl ChildTurnIterator {
             &self.own_locations,
             &self.opponent_locations
         ) {
-            self.moving_current_to_be_taken_index = Some(0)
+            self.current_to_be_taken_index = Some(0)
         } else {
-            self.moving_current_to_be_taken_index = None
+            self.current_to_be_taken_index = None
         }
     }
 }
@@ -304,6 +326,31 @@ fn test_child_turn_iterator_select_samples() {
             Turn { action: TurnAction::Move { from: 22, to: 21 }, take_from: None },
         ]
     ));
+
+    let case = GameBoard::from([0,0,0]);
+    let turns = ChildTurnIterator::new(Phase::PLACE, Team::BLACK, case).dedup().collect::<Vec<Turn>>();
+    assert_eq!(turns.len(), 24);
+
+    let case = GameBoard::from([0b0110,0,0]);
+    let turns = ChildTurnIterator::new(Phase::PLACE, Team::BLACK, case).dedup().collect::<Vec<Turn>>();
+    assert_eq!(turns.len(), 22);
+
+    let case = GameBoard::from([0b01011010,0,0]);
+    let turns = ChildTurnIterator::new(Phase::PLACE, Team::BLACK, case).dedup().collect::<Vec<Turn>>();
+    dbg!(turns.clone());
+    assert!(turns.contains(&Turn {
+        action: TurnAction::Place { location: 4},
+        take_from: Some(8)
+    }));
+    assert!(turns.contains(&Turn {
+        action: TurnAction::Place { location: 4},
+        take_from: Some(7)
+    }));
+    assert!(!turns.contains(&Turn {
+        action: TurnAction::Place { location: 4},
+        take_from: None
+    }));
+    assert_eq!(turns.len(), 21);
 }
 
 #[test]

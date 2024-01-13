@@ -13,27 +13,31 @@ use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, collections::Ha
 use std::sync::{Arc, Mutex};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
+use crate::datastructures::Phase::MOVE;
 
 fn main() {
-    //ai_mode();
-    MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("BEBWEBEEEBWEWEBEBEEEBEWE")), Arc::new(Mutex::new(BoardHistoryMap::default())));
-    MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("BEBWEWEEEBBEEEBEBEEEEEWE")), Arc::new(Mutex::new(BoardHistoryMap::default())));
-    MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("BEBWEBEEEBEEEEEWBEEEBEWE")), Arc::new(Mutex::new(BoardHistoryMap::default())));
+    ai_mode();
 }
 
 fn ai_mode() {
     let mut history = Arc::new(Mutex::new(BoardHistoryMap::default()));
+    let mut num_invocations = 0;
 
     loop {
         let mut input = String::new();
         std::io::stdin().read_line(&mut input).expect("Failed to read line");
         let mut input_pieces: Vec<&str> = input.trim().split(" ").collect();
 
+        num_invocations += 2; // Add two, since the opponent was queried inbetween
+
         let phase = match input_pieces[0] {
             "M" => Phase::MOVE,
             "P" => Phase::PLACE,
             _ => { panic!("Invalid phase") }
         };
+        if phase == MOVE && num_invocations < 18 {
+            num_invocations = 18
+        }
         let team = Team::decode(String::from(input_pieces[1]));
         let board = GameBoard::decode(String::from(input_pieces[2]));
 
@@ -42,7 +46,7 @@ fn ai_mode() {
             history.lock().unwrap().increment(board);
         }
 
-        let result = MinimaxAgent::get_next_move(phase, team, board, Arc::clone(&history));
+        let result = MinimaxAgent::get_next_move(team, board, Arc::clone(&history), num_invocations);
 
         {
             let mut history = history.lock().unwrap();
