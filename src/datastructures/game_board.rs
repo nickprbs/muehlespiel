@@ -67,6 +67,8 @@ pub trait UsefulGameBoard {
 
     fn print_board(&self);
 
+    fn invert_teams(&self) -> GameBoard; 
+
     // Calculates the amount of all possible moves that produce the current gameboard when applied. This is specific for a
     // single location, meaning in the "previous" gameboard the move leading to the current gameboard is made with the provided
     // stone in the CURRENT gameboard.
@@ -374,6 +376,19 @@ impl UsefulGameBoard for GameBoard {
         team
     }
 
+    fn invert_teams(&self) -> GameBoard {
+     let mut output: GameBoard = [0,0,0]; 
+        for ring in 0..3 {
+            for i in 0..=7 {
+                let (higher, lower) = (((self[ring as usize] & 2_u16.pow(15-2*i as u32)).count_ones() as u16) , 
+                                                ((self[ring as usize] & 2_u16.pow(15-(2*i +1)as u32)).count_ones() as u16)); 
+                let (new_h, new_l) = ((higher & lower)|lower , (higher & lower)| higher); 
+                 output[ring] = output[ring] | (new_h*2_u16.pow(15-2*i as u32) + new_l*2_u16.pow(15-(2*i + 1) as u32)); 
+            }
+        }
+        output 
+    }
+
     // panics if the location is empty
     fn get_free_neighbours(&self, location: Location) -> Vec<Location> {
         let mut free_neighbours: Vec<u8> = Vec::new();
@@ -478,6 +493,15 @@ fn print_board_test(){
     let actual_game_board = GameBoard::from_pieces(black_pieces, white_pieces);
     actual_game_board.print_board();
 }
+
+#[test]
+fn test_invert_teams () {
+    let case1 = GameBoard::decode(String::from           ("WEEBEEBWWWEEWEEBWBEWEEEB")); 
+    assert_eq!(case1.invert_teams(), GameBoard::decode(String::from("BEEWEEWBBBEEBEEWBWEBEEEW")));
+    let case2 = GameBoard::decode(String::from("EEEEEEEEEEEEEEEEEEEEEEEE"));
+    assert_eq!(case2.invert_teams(), case2); 
+}
+
 #[test]
 fn test_game_board_from_pieces() {
     let black_pieces = vec![1,2, 3, 7, 10];
