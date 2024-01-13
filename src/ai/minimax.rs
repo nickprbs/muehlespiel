@@ -16,7 +16,7 @@ pub struct MinimaxAgent {}
 
 const DEPTH_LIMIT: u16 = u16::MAX;
 const ALPHA: f32 = 1.1;
-const BETA: f32 = 2.5;
+const BETA: f32 = 2.42;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 struct  TranspositionTableKey (u16, Turn);
