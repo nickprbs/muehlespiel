@@ -199,13 +199,13 @@ impl PreviousMoveIterator {
 #[test]
 fn test_parent_iterator () {
     let case1: GameBoard = GameBoard::decode(String::from("EEWWBBBEEEWWBBBWWEWBWBWE")); 
-    let iter = ParentBoardIterator::new(Team::BLACK, case1); 
-    let input_own_locations = case1.get_piece_locations(Team::BLACK); 
-    let input_opponent_locations = case1.get_piece_locations(Team::WHITE);
+    let iter = ParentBoardIterator::new(Team::WHITE, case1); 
+    let input_own_locations = case1.get_piece_locations(Team::WHITE); 
+    let input_opponent_locations = case1.get_piece_locations(Team::BLACK);
     let mut input_occupied_locations = input_own_locations.clone(); 
     for elem in input_opponent_locations.iter() {
         input_occupied_locations.push(*elem); 
     }
     let smalliter= PreviousMoveIterator::new(input_occupied_locations, input_own_locations, input_opponent_locations, Some(11), case1); 
-    assert_eq!(smalliter.collect_vec().len(), 5); 
+    assert_eq!(iter.collect_vec().len(), 1); 
 }
