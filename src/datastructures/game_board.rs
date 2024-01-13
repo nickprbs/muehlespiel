@@ -339,9 +339,9 @@ impl UsefulGameBoard for GameBoard {
         count as u8
     }
 
-    fn get_piece_locations(&self, _team: Team) -> Vec<Location> {
-        let mut locations: Vec<u8> = Vec::new();
-        let (higher, lower) = match _team {
+    fn get_piece_locations(&self, team: Team) -> Vec<Location> {
+        let mut locations: Vec<u8> = Vec::with_capacity(9);
+        let (higher, lower) = match team {
             Team::BLACK => (0,1),
             Team::WHITE => (1,0)
         };
