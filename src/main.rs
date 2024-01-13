@@ -11,7 +11,14 @@ use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
 fn main() {
+<<<<<<< HEAD
     complete_search_evaluation().unwrap();
+=======
+    // println!("{}", enumerate_lost_positions());
+    //let result = MinimaxAgent::get_next_move(Phase::MOVE, Team::WHITE, GameBoard::decode(String::from("EEWWWBBBEEEEEEEEEEEEEEEE")), ());
+    //println!("{}", result.encode());
+    comeplete_search_evaluation();
+>>>>>>> 5a5a316 (reverse search updates)
 }
 
 fn ai_mode() {
