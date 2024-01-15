@@ -1,6 +1,6 @@
 use fnv::FnvHashSet;
 use itertools::Itertools;
-use crate::datastructures::{Team, Phase};
+use crate::datastructures::{Team, Phase, Encodable};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
@@ -30,7 +30,7 @@ fn mark_lost(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_state
             lost_states.insert(state);
             if lost_states.len() > 10 {
                 for lost in lost_states.iter() {
-                    println!("{} {} {}", lost[0], lost[1], lost[2])
+                    dbg!(lost.encode());
                 }
                 break;
             }
@@ -53,7 +53,7 @@ fn mark_won(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_states
                 won_states.insert(state);
                 if won_states.len() > 10 {
                     for won in won_states.iter() {
-                        println!("{} {} {}", won[0], won[1], won[2]);
+                        dbg!(won.encode());
                     }
                     break;
                 }
