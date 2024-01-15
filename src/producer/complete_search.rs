@@ -18,7 +18,7 @@ use super::lost_positions::all_lost_positions;
 // -use profiler to determine expensive things (Flamegraph) 
 //  
 pub fn complete_search() -> FnvHashSet<CanonicalGameBoard> {
-    let mut lost_states: FnvHashSet<CanonicalGameBoard> = all_lost_positions();
+    let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     mark_lost(&mut all_lost_positions(), Team::WHITE, &mut lost_states, &mut won_states);
     lost_states
