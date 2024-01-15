@@ -9,7 +9,6 @@ use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
 use std::sync::{Arc, Mutex};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
-use crate::datastructures::Phase::MOVE;
 
 fn main() {
     complete_search_evaluation().unwrap();
@@ -29,7 +28,7 @@ fn ai_mode() {
             "P" => Phase::PLACE,
             _ => { panic!("Invalid phase") }
         };
-        if phase == MOVE && num_invocations < 18 {
+        if phase == Phase::MOVE && num_invocations < 18 {
             num_invocations = 18
         }
         let team = Team::decode(String::from(input_pieces[1]));
