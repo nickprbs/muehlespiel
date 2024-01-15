@@ -16,7 +16,7 @@ use crate::ai::{Agent, MinimaxAgent};
 use crate::datastructures::Phase::MOVE;
 
 fn main() {
-    ai_mode();
+    complete_search_evaluation().unwrap();
 }
 
 fn ai_mode() {
@@ -62,7 +62,7 @@ fn ai_mode() {
     }
 }
 
-fn comeplete_search_evaluation() -> Result<(), Error> {
+fn complete_search_evaluation() -> Result<(), Error> {
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
     let output_file_path = project_directory.join("output.txt");
@@ -71,17 +71,16 @@ fn comeplete_search_evaluation() -> Result<(), Error> {
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
 
-    let (loser, winner) = complete_search();
-    eprintln!("loser:{}, winner:{}", loser.len(), winner.len());
+    let lost_states = complete_search();
 
     for line in file_reader.lines() {
 
         let current_gameboard = GameBoard::decode(line?);
         let canonical_board = current_gameboard.get_representative();
         let mut output_line_content;
-        if loser.contains(&canonical_board){
+        if lost_states.contains(&canonical_board){
             output_line_content = 0;
-        } else if winner.contains(&canonical_board){
+        } else if lost_states.contains(&canonical_board){
             output_line_content = 2;
         } else {
             output_line_content = 1;

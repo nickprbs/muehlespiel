@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-use std::default;
-use fnv::{FnvBuildHasher, FnvHashSet};
+use fnv::FnvHashSet;
 use itertools::Itertools;
-use crate::datastructures::{GameBoard, Location, Team, Phase};
+use crate::datastructures::{Team, Phase};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
@@ -20,13 +18,11 @@ use super::lost_positions::all_lost_positions;
 // -change structure : input whole hash map in mark_lost / mark_won 
 // -use profiler to determine expensive things (Flamegraph) 
 //  
-pub fn complete_search () -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<CanonicalGameBoard>){
-    let mut lost_states: FnvHashSet<CanonicalGameBoard>= FnvHashSet::default(); 
-    let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default(); 
-    let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default(); 
-        mark_lost(&mut all_lost_positions(), Team::WHITE, &mut lost_states, &mut won_states);
-        mark_won(&mut possible_won_states, Team::WHITE, &mut lost_states, &mut won_states); 
-    (lost_states,won_states) 
+pub fn complete_search () -> FnvHashSet<CanonicalGameBoard> {
+    let mut lost_states: FnvHashSet<CanonicalGameBoard>= FnvHashSet::default();
+    let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+    mark_lost(&mut all_lost_positions(), Team::WHITE, &mut lost_states, &mut won_states);
+    lost_states
 }
 
 fn mark_lost(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>  ) {
@@ -35,7 +31,7 @@ fn mark_lost(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_state
             lost_states.insert(state); 
             if lost_states.len() > 10 {
                 for lost in lost_states.iter() {
-                    eprintln!("{}{}{}", lost[0], lost[1], lost[2])
+                    println!("{} {} {}", lost[0], lost[1], lost[2])
                 } 
                 break
             }
@@ -58,7 +54,7 @@ fn mark_won(states: &mut FnvHashSet<CanonicalGameBoard>, team:Team, lost_states:
             won_states.insert(state); 
             if won_states.len() > 10 { 
                 for won in won_states.iter() {
-                    eprintln!("{}{}{}", won[0], won[1], won[2]);
+                    println!("{} {} {}", won[0], won[1], won[2]);
                 }
                 break
             }
