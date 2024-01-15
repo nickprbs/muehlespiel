@@ -3,13 +3,9 @@ mod iterators;
 mod producer;
 mod ai;
 
-use crate::producer::lost_positions::lost_positions_by_cant_move;
-use crate::producer::lost_positions::lost_positions_by_pieces_taken;
-
 use datastructures::*;
-use datastructures::game_board::CanonicalGameBoard;
 use producer::complete_search::complete_search;
-use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, collections::HashMap};
+use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
 use std::sync::{Arc, Mutex};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
@@ -72,6 +68,8 @@ fn complete_search_evaluation() -> Result<(), Error> {
     let mut output_file = File::create(&output_file_path)?;
 
     let lost_states = complete_search();
+
+    dbg!(lost_states.len());
 
     for line in file_reader.lines() {
 
