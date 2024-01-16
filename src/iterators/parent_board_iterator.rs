@@ -2,6 +2,8 @@ use fnv::FnvHashMap;
 use itertools::Itertools;
 use crate::datastructures::{GameBoard, Location, Phase, Team, Turn, TurnAction, Encodable};
 use crate::datastructures::game_board::{UsefulGameBoard, CanonicalGameBoard};
+use std::collections::HashMap;
+use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
 
 pub struct ParentBoardIterator {
     opponent_team: Team,
@@ -199,4 +201,80 @@ fn test_parent_iterator() {
     }
     let smalliter = PreviousMoveIterator::new(input_occupied_locations, input_own_locations, input_opponent_locations, Some(11), case1);
     assert_eq!(iter.collect_vec().len(), 1);
+}
+
+
+#[test]
+fn test_parent_logic() ->Result<(), Error> {
+    let case1 = GameBoard::decode(String::from("EEBEEEWEWEEEEEEBWEEEBEEE")); 
+    case1.get_representative().print_board(); 
+    let parents = ParentBoardIterator::new(Team::BLACK, case1).collect_vec(); 
+    let project_directory = env::current_dir()?;
+    let output_file_path = project_directory.join("parent_debug.txt");
+    let mut output_file = File::create(&output_file_path)?;
+
+    for board in parents {
+        
+            let mut black = board.get_piece_locations(Team::BLACK);
+            let mut white =board.get_piece_locations(Team::WHITE);
+            let mut board:HashMap<u8,String>= HashMap::default();
+            for i in 1..=24{
+                board.insert(i, "E".to_string());
+            }
+            for b in black{
+                board.insert(b, "B".to_string());
+            }
+            for w in white {
+                board.insert(w, "W".to_string());
+            }
+            let a = board.get(&8).unwrap();
+            let b = board.get(&1).unwrap();
+            let c = board.get(&2).unwrap();
+            writeln!(output_file, "{}",format!("{}------------{}------------{}", a, b, c));
+            writeln!(output_file, "{}", format!("|            |            |"));
+    
+            let a = board.get(&16).unwrap();
+            let b = board.get(&9).unwrap();
+            let c  = board.get(&10).unwrap();
+            writeln!(output_file, "{}", format!("|   {}--------{}--------{}   |", a, b, c));
+            writeln!(output_file, "{}", format!("|   |        |        |   |"));
+    
+            let a  = board.get(&24).unwrap();
+            let b  = board.get(&17).unwrap();
+            let c  = board.get(&18).unwrap();
+            writeln!(output_file, "{}", format!("|   |   {}----{}----{}   |   |", a, b, c));
+            writeln!(output_file, "{}", format!("|   |   |         |   |   |"));
+    
+            let a  = board.get(&7).unwrap();
+            let b  = board.get(&15).unwrap();
+            let c  = board.get(&23).unwrap();
+            let d  = board.get(&19).unwrap();
+            let e  = board.get(&11).unwrap();
+            let f  = board.get(&3).unwrap();
+            writeln!(output_file, "{}", format!("{}---{}---{}         {}---{}---{}", a, b, c, d, e, f));
+            writeln!(output_file, "{}", format!("|   |   |         |   |   |"));
+    
+            let a  = board.get(&22).unwrap();
+            let b  = board.get(&21).unwrap();
+            let c  = board.get(&20).unwrap();
+            writeln!(output_file, "{}", format!("|   |   {}----{}----{}   |   |", a, b, c));
+    
+            writeln!(output_file, "{}", format!("|   |        |        |   |"));
+            let a  = board.get(&14).unwrap();
+            let b  = board.get(&13).unwrap();
+            let c  = board.get(&12).unwrap();
+            writeln!(output_file, "{}", format!("|   {}--------{}--------{}   |", a, b, c));
+    
+            writeln!(output_file, "{}", format!("|            |            |"));
+            let a  = board.get(&6).unwrap();
+            let b  = board.get(&5).unwrap();
+            let c  = board.get(&4).unwrap();
+            writeln!(output_file, "{}", format!("{}------------{}------------{}", a, b, c));
+        
+            writeln!(output_file, ""); 
+    }   
+    
+    Ok(())
+    
+    //assert!(parents.contains(&GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE")).get_representative()));
 }

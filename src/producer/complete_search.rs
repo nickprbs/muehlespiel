@@ -66,13 +66,13 @@ fn mark_won(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
                                  child_board = child_board.get_representative();
                             }
 
-                            if won_states.contains(&GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE")).get_representative()){
-                                eprintln!("won states contains 1st canonical!");
-                            } else if won_states.contains(&GameBoard::decode(String::from("WEEEEEEEEEBEBEEEWEEWEEEB")).get_representative()){
-                                eprintln!("won states contains 2nd canonical!");
-                            } else if won_states.contains(&GameBoard::decode(String::from("WBEEEEEEEEEEEEWEWEBEEEEB")).get_representative()){
-                                eprintln!("won states contains 3rd canonical!") 
-                            }
+                            //if won_states.contains(&GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE")).get_representative()){
+                            //    eprintln!("won states contains 1st canonical!");
+                            //} else if won_states.contains(&GameBoard::decode(String::from("WEEEEEEEEEBEBEEEWEEWEEEB")).get_representative()){
+                            //    eprintln!("won states contains 2nd canonical!");
+                            //} else if won_states.contains(&GameBoard::decode(String::from("WBEEEEEEEEEEEEWEWEBEEEEB")).get_representative()){
+                            //    eprintln!("won states contains 3rd canonical!") 
+                            //}
                             won_states.contains(&child_board)  
                         }) {
                         possible_lost_states.insert(prev_state);
