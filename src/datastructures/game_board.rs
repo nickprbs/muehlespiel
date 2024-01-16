@@ -321,23 +321,17 @@ impl UsefulGameBoard for GameBoard {
     }
 
     fn get_num_pieces(&self, team: Team) -> u8 {
-        let offset = match team {
-            Team::BLACK => 0,
-            Team::WHITE => 1
+        let bitmask = match team {
+            Team::BLACK => 0b0101010101010101,
+            Team::WHITE => 0b1010101010101010,
         };
-        let mut count = 0;
+        let mut team_board = self.clone();
 
         for ring in 0..=2 {
-            let mut current_ring = self[ring].clone();
-            current_ring = current_ring >> offset;
-            count += current_ring & 0b00000001;
-            for _angle in 0..7 {
-                current_ring = current_ring >> 2;
-                count += current_ring & 0b00000001
-            }
+            team_board[ring] = team_board[ring].bitand(bitmask);
         }
 
-        count as u8
+        (team_board[0].count_ones() + team_board[1].count_ones() + team_board[2].count_ones()) as u8
     }
 
     fn get_piece_locations(&self, team: Team) -> Vec<Location> {
@@ -544,12 +538,16 @@ fn test_bit_placing() {
 
 #[test]
 fn test_get_num_pieces() {
-    let case = GameBoard::decode(String::from("WEEBEEBWWWEEWEEBWBEWEEEB"));
-    let expected_white_count = 7;
-    let expected_black_count = 5;
+    for _ in 0..1000000 {
+        let case = GameBoard::decode(String::from("WEEBEEBWWWEEWEEBWBEWEEEB"));
+        let expected_white_count = 7;
+        let expected_black_count = 5;
+        let expected_total_count = expected_black_count + expected_white_count;
 
-    assert_eq!(expected_white_count, case.get_num_pieces(Team::WHITE));
-    assert_eq!(expected_black_count, case.get_num_pieces(Team::BLACK));
+        assert_eq!(expected_white_count, case.get_num_pieces(Team::WHITE));
+        assert_eq!(expected_black_count, case.get_num_pieces(Team::BLACK));
+        assert_eq!(expected_total_count, case.get_total_stone_amount());
+    }
 }
 
 #[test]
