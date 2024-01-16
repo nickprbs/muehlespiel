@@ -8,6 +8,10 @@ let
 in with pkgs;
 mkShell {
   name = "scriptr";
-  buildInputs = [rust-toolchain];
+  buildInputs = [
+    rust-toolchain
+    linuxKernel.packages.linux_latest_libre.perf
+    hotspot
+  ];
   RUST_BACKTRACE = 1;
 }
