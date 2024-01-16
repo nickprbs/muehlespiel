@@ -66,7 +66,7 @@ fn complete_search_evaluation() -> Result<(), Error> {
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
 
-    let lost_states = complete_search();
+    let (lost_states, won_states) = complete_search();
 
     dbg!(lost_states.len());
 
@@ -77,7 +77,7 @@ fn complete_search_evaluation() -> Result<(), Error> {
         let mut output_line_content;
         if lost_states.contains(&canonical_board){
             output_line_content = 0;
-        } else if lost_states.contains(&canonical_board){
+        } else if won_states.contains(&canonical_board){
             output_line_content = 2;
         } else {
             output_line_content = 1;

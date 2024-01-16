@@ -1,6 +1,6 @@
 use fnv::FnvHashSet;
 use itertools::Itertools;
-use crate::datastructures::{Team, Phase, Encodable};
+use crate::datastructures::{Team, Phase};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
@@ -17,11 +17,11 @@ use super::lost_positions::all_lost_positions;
 // -change structure : input whole hash map in mark_lost / mark_won 
 // -use profiler to determine expensive things (Flamegraph) 
 //  
-pub fn complete_search() -> FnvHashSet<CanonicalGameBoard> {
+pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<CanonicalGameBoard>) {
     let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     mark_lost(&mut all_lost_positions(), Team::WHITE, &mut lost_states, &mut won_states);
-    lost_states
+    (lost_states, won_states)
 }
 
 fn mark_lost(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
@@ -30,9 +30,9 @@ fn mark_lost(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_state
             lost_states.insert(state);
             if lost_states.len() > 10 {
                 for lost in lost_states.iter() {
-                    dbg!(lost.encode());
+                    //dbg!(lost.encode());
                 }
-                break;
+                // break;
             }
             let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
             for prev_state in ParentBoardIterator::new(team, state) {
@@ -53,11 +53,18 @@ fn mark_won(states: &mut FnvHashSet<CanonicalGameBoard>, team: Team, lost_states
                 won_states.insert(state);
                 if won_states.len() > 10 {
                     for won in won_states.iter() {
-                        dbg!(won.encode());
+                        //dbg!(won.encode());
                     }
-                    break;
+                    // break;
                 }
-                for prev_state in ParentBoardIterator::new(team, state) {
+
+                let mut previous_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+
+                ParentBoardIterator::new(team, state).for_each(|parent_board| {
+                    previous_states.insert(parent_board);
+                });
+
+                for prev_state in previous_states {
                     if ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state).all(|child_turn|
                         {
                             let child_board = prev_state.apply(child_turn, team.get_opponent());
