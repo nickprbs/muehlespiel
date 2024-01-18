@@ -58,6 +58,17 @@ pub trait UsefulGameBoard {
         let white_locations = self.get_piece_locations(Team::WHITE);
         self.is_mill_at(location, &black_locations, &white_locations)
     }
+    fn is_mill_for_team_at(&self, team: Team, location: Location) -> bool {
+        let black_locations = match team {
+            Team::WHITE => vec![],
+            Team::BLACK => self.get_piece_locations(Team::BLACK),
+        };
+        let white_locations = match team {
+            Team::WHITE => self.get_piece_locations(Team::WHITE),
+            Team::BLACK => vec![],
+        };
+        self.is_mill_at(location, &black_locations, &white_locations)
+    }
 
     fn has_only_mills(&self, team: Team) -> bool;
     fn get_num_pieces(&self, team: Team) -> u8;
