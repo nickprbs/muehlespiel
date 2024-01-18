@@ -1,3 +1,4 @@
+use std::fs;
 use itertools::Itertools;
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::datastructures::{Encodable, GameBoard, Location, Phase, Team};
@@ -82,8 +83,21 @@ impl ParentBoardIterator {
         }
     }
 
-    fn set_up_taken_from_iter(&mut self) {
-        todo!("Check whether post is in mill, then fill taken_from_iter. Else make empty.")
+    fn set_up_taken_from_iter(&mut self, pre_location: Location) {
+        // Important: We need to remove the pre location from the possible taken iter
+        self.taken_from_iter = if self.post_position_in_mill {
+            let mut taken_from_locations = self.possible_locations_taken_from.clone();
+            let index_of_pre_position = taken_from_locations.iter()
+                .position(|x| *x == pre_location);
+            if let Some(index) = index_of_pre_position {
+                taken_from_locations.remove(index);
+            } // else: it might be that the pre location is already ignored (for example for being in a mill)
+
+            LocationIterator::with_allowed(taken_from_locations)
+        } else {
+            // We cannot take anything
+            LocationIterator::with_allowed(vec![])
+        };
     }
 
     fn build_canonical_board_option(&self,
@@ -126,20 +140,7 @@ impl Iterator for ParentBoardIterator {
 
                 if let Some(next_pre_location) = next_pre_location {
                     // Reset the taken_from_iter to start over
-                    // Important: We need to remove the pre location from the possible taken iter
-                    self.taken_from_iter = if self.post_position_in_mill {
-                        let mut taken_from_locations = self.possible_locations_taken_from.clone();
-                        let index_of_pre_position = taken_from_locations.iter()
-                            .position(|x| *x == next_pre_location);
-                        if let Some(index) = index_of_pre_position {
-                            taken_from_locations.remove(index);
-                        } // else: it might be that the pre location is already ignored (for example for being in a mill)
-
-                        LocationIterator::with_allowed(taken_from_locations)
-                    } else {
-                        // We cannot take anything
-                        LocationIterator::with_allowed(vec![])
-                    };
+                    self.set_up_taken_from_iter(next_pre_location);
                 }
 
                 // It may be that we can't take one, so the PHASE c above won't execute
@@ -173,7 +174,12 @@ impl Iterator for ParentBoardIterator {
                     };
 
                     self.current_pre_position = self.pre_position_iter.next();
-                    // Resetting the taken_from_iter will be done for us in PHASE b
+                    if let Some(next_pre_location) = self.current_pre_position {
+                        // Reset the taken_from_iter to start over
+                        self.set_up_taken_from_iter(next_pre_location);
+                    }
+
+                    // Let's jump directly into PHASE a
                     return self.next();
                 } else {
                     // There's nothing we need to look at anymore, since we looked at all post positions
@@ -188,27 +194,12 @@ impl Iterator for ParentBoardIterator {
 
 #[test]
 fn test_parent_board_iter2() {
-    let parent_cases = [
-        "EEEEEEEBEEWWEBEBEEWEEEEE",
-        "EEBEEEEEEEBBWWEEEWEEEEEE",
-        "EEBEEEEEWEEEEBEBWEEEEEEW",
-        "WEEBWEEEEEEEEEWBEBEEEEEE",
-        "BBWEEEEEEEWEEEWEEEBEEEEE",
-        "WEEEEEEBEEEEBEEBEEEWEEWE",
-        "EEWBEBEWEEBEEWEEEEEEEEEE",
-        "WEEEEEEEEBEEEEWBEEWEEEEB",
-        "EEEEEEEEWBEEEEBWBWEEEEEE",
-        "EEBEEEEWEEBEEEEWEWBEEEEE",
-        "EEEEEEBEEEEEWEBEWWEEEBEE",
-        "BEEWEEEEEBWEBEEEWEEEEEEE",
-        "BEWEEWEEBEWEEEEEBEEEEEEE",
-        "EEEEWBEEWEEEEEEBEWEEBEEE",
-        "WEEEEEEEEBEEEEEBEWEEEBWE",
-        "WEEEEWEBWEEEBBEEEEEEEEEE",
-        "WEEEEEBWEEEEEWEEEBEEEBEE",
-        "BEEEEBEEEEWWEEEEEBEWEEEE",
-        "EEBEEEBEEBEEEEEWWEEEEEWE",
-    ].map(|case| {
+    let file_content = fs::read_to_string("./tests/complete-search/3vs3/input_felder.txt")
+        .expect("File could not be read");
+
+    let parent_cases = file_content
+        .split_terminator("\n")
+        .map(|case| {
         GameBoard::decode(String::from(case))
     });
 
