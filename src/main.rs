@@ -11,6 +11,7 @@ use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
 fn main() {
+    //ai_mode();
     complete_search_evaluation().unwrap();
 }
 

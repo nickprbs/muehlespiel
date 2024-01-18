@@ -1,9 +1,10 @@
 use fnv::FnvHashMap;
 use itertools::Itertools;
-use crate::datastructures::{GameBoard, Location, Phase, Team, Turn, TurnAction, Encodable};
+use crate::datastructures::{GameBoard, Location, Team, Turn, TurnAction, Encodable, Phase};
 use crate::datastructures::game_board::{UsefulGameBoard, CanonicalGameBoard};
 use std::collections::HashMap;
-use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
+use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, fs};
+use crate::iterators::ChildTurnIterator;
 
 pub struct ParentBoardIterator {
     opponent_team: Team,

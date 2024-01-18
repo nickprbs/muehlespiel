@@ -194,8 +194,11 @@ impl Iterator for ParentBoardIterator {
 
 #[test]
 fn test_parent_board_iter2() {
-    let file_content = fs::read_to_string("./tests/complete-search/3vs3/input_felder.txt")
+    let mut file_content = fs::read_to_string("./tests/complete-search/3vs3/input_felder.txt")
         .expect("File could not be read");
+    file_content.push_str(
+        fs::read_to_string("./tests/complete-search/5vs5/input_felder.txt").unwrap().as_str()
+    );
 
     let parent_cases = file_content
         .split_terminator("\n")
@@ -208,12 +211,43 @@ fn test_parent_board_iter2() {
 
         children.for_each(|turn| {
             let child_board = parent.apply(turn, Team::WHITE);
-            let mut parents: Vec<CanonicalGameBoard> = ParentBoardIterator::new(Team::BLACK, child_board).collect();
+            let mut parents_of_child: Vec<CanonicalGameBoard> = ParentBoardIterator::new(Team::BLACK, child_board).collect();
+
             assert!(
-                parents.contains(&parent.get_representative()),
+                parents_of_child.contains(&parent.get_representative()),
                 "Child {} does not include parent {}. Either ChildTurnIterator or ParentBoardIterator is wrong. Number of supposed parents: {:?}",
-                child_board.encode(), parent.encode(), parents.len()
+                child_board.encode(), parent.encode(), parents_of_child.len()
             );
         })
     })
+}
+
+#[test]
+fn test_parent_board_equivalence_1_and_2() {
+    let mut file_content = fs::read_to_string("./tests/complete-search/3vs3/input_felder.txt")
+        .expect("File could not be read");
+
+    let parent_cases = file_content
+        .split_terminator("\n")
+        .map(|case| {
+            GameBoard::decode(String::from(case))
+        });
+
+    parent_cases.into_iter().for_each(|parent| {
+        let children = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, parent);
+
+        children.for_each(|turn| {
+            let child_board = parent.apply(turn, Team::WHITE);
+            let parents_of_child_1: Vec<CanonicalGameBoard> = crate::iterators::parent_board_iterator::ParentBoardIterator::new(Team::BLACK, child_board).collect();
+            let parents_of_child_2: Vec<CanonicalGameBoard> = crate::iterators::parent_board_iterator2::ParentBoardIterator::new(Team::BLACK, child_board).collect();
+
+            parents_of_child_1.iter().for_each(|parent_1| {
+                assert!(parents_of_child_2.contains(parent_1), "Parent from Iterator 1 '{}' is not in Parents from Iterator 2. Post-Board: {}", parent_1.encode(), child_board.encode())
+            });
+            parents_of_child_2.iter().for_each(|parent_2| {
+                assert!(parents_of_child_1.contains(parent_2), "Parent from Iterator 2 '{}' is not in Parents from Iterator 1. Post-Board: {}", parent_2.encode(), child_board.encode())
+            });
+        })
+    })
+
 }
