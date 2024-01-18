@@ -6,7 +6,8 @@ use crate::datastructures::{Direction, GameBoardLocation, Location};
 * If two locations have the same neighbour, this neighbour is returned twice!
 */
 pub struct NeighboursIterator {
-    locations: Vec<Location>,
+    locations_to_neighbour: Vec<Location>,
+    forbidden_locations: Vec<Location>,
     locations_iter: Box<dyn Iterator<Item=Location>>,
     current_location: Option<Location>,
     neighbour_directions: Box<dyn Iterator<Item=Direction>>
@@ -15,7 +16,18 @@ pub struct NeighboursIterator {
 impl NeighboursIterator {
     pub(crate) fn new(locations: Vec<Location>) -> Self {
         Self {
-            locations: locations.clone(),
+            locations_to_neighbour: locations.clone(),
+            forbidden_locations: vec![],
+            locations_iter: Box::new(locations.into_iter()),
+            current_location: None,
+            neighbour_directions: Box::new(Direction::iter()),
+        }
+    }
+
+    pub(crate) fn new_with_forbidden(locations: Vec<Location>, forbidden_locations: Vec<Location>) -> Self {
+        Self {
+            locations_to_neighbour: locations.clone(),
+            forbidden_locations,
             locations_iter: Box::new(locations.into_iter()),
             current_location: None,
             neighbour_directions: Box::new(Direction::iter()),
@@ -27,7 +39,7 @@ impl Iterator for NeighboursIterator {
     type Item = Location;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.locations.len() == 0 {
+        if self.locations_to_neighbour.len() == 0 {
             return None;
         }
 
@@ -61,7 +73,9 @@ impl Iterator for NeighboursIterator {
                         }
 
                         // Test if that field is actually free
-                        if self.locations.contains(&neighbour_location) {
+                        let colliding_with_self = self.locations_to_neighbour.contains(&neighbour_location);
+                        let colliding_with_forbidden = self.forbidden_locations.contains(&neighbour_location);
+                        if colliding_with_self || colliding_with_forbidden {
                             return self.next();
                         }
 
