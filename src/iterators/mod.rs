@@ -5,6 +5,7 @@ mod location_iterator;
 mod mill_iterator;
 mod n_range_locations_iterator;
 mod neighbours_iterator;
+mod parent_board_iterator2;
 
 pub use crate::iterators::{
     board_equivalence_class_iterator::BoardEquivalenceClassIterator as BoardEquivalenceClassIterator,
@@ -13,5 +14,5 @@ pub use crate::iterators::{
     n_range_locations_iterator::NLocationsIterator as NLocationsIterator,
     neighbours_iterator::NeighboursIterator as NeighboursIterator,
     mill_iterator::MillIterator as MillIterator,
-    parent_board_iterator::ParentBoardIterator as ParentBoardIterator
+    parent_board_iterator2::ParentBoardIterator as ParentBoardIterator,
 };
