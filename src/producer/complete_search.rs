@@ -8,6 +8,8 @@ use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
+const MAX_NUM_PIECES_PER_TEAM: u8 = 3;
+
 
 /**
  * Output one: LOST, Output two: WON
@@ -30,13 +32,13 @@ fn mark_lost(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &
    if !states.is_empty() {
    let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     for state in states.iter() {
-        if state.get_total_stone_amount() <= 6 {
+        if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
             if !lost_states.contains(state) {
                 lost_states.insert(*state);
                 for prev_state in ParentBoardIterator::new(team, *state) {
                     //eprintln!("new parent state found");
                     //eprintln!("");
-                    if prev_state.get_total_stone_amount() <= 6 {
+                    if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
                         possible_won_states.insert(prev_state);
                     }
                 }
@@ -52,7 +54,7 @@ fn mark_won(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
     if !states.is_empty() {
     let mut possible_lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     for state in states.iter() {
-        if state.get_total_stone_amount() <= 6 {
+        if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
             if !won_states.contains(state) {
                 won_states.insert(*state);
 
