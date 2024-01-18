@@ -12,6 +12,7 @@ mkShell {
     rust-toolchain
     linuxKernel.packages.linux_latest_libre.perf
     hotspot
+    hyperfine
   ];
   RUST_BACKTRACE = 1;
 }
