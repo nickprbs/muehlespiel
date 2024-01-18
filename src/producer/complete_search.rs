@@ -132,3 +132,30 @@ fn test_3vs3() {
         .expect("File could not be read");
     assert_eq!(expected.trim(), actual.trim());
 }
+
+#[test]
+fn test_5vs5() {
+    let file_contents = fs::read_to_string("./tests/complete-search/5vs5/input_felder.txt")
+        .expect("File could not be read");
+
+    let mut boards = file_contents.split_terminator('\n');
+    let mut actual: String = String::new();
+
+    let (lost_states, won_states) = complete_search();
+
+    while let Some(board) = boards.next() {
+        let canonical_board = GameBoard::decode(String::from(board)).get_representative();
+        let output_line = if lost_states.contains(&canonical_board) {
+            0
+        } else if won_states.contains(&canonical_board) {
+            2
+        } else {
+            1
+        };
+        actual = format!("{actual}\n{output_line}");
+    }
+
+    let expected = fs::read_to_string("./tests/complete-search/5vs5/output.txt")
+        .expect("File could not be read");
+    assert_eq!(expected.trim(), actual.trim());
+}
