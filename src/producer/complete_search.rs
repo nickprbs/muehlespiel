@@ -24,8 +24,18 @@ const MAX_NUM_PIECES_PER_TEAM: u8 = 3;
 pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<CanonicalGameBoard>) {
     let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    mark_lost(all_lost_positions(), Team::WHITE, &mut lost_states, &mut won_states);
-    (lost_states, won_states)
+    let input = all_lost_positions();
+    let mut lost_states_b: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+    let mut won_states_b: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+    let mut second_input: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+    for board in input.iter() {
+        second_input.insert(board.invert_teams().get_representative()); 
+    } 
+    
+
+    mark_lost( input, Team::WHITE, &mut lost_states, &mut won_states);
+    mark_lost( second_input, Team::BLACK, &mut lost_states_b, &mut won_states_b);
+    (lost_states, won_states_b)
 }
 
 fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {

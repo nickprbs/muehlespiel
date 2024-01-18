@@ -207,8 +207,9 @@ fn test_parent_iterator() {
 
 #[test]
 fn test_parent_logic() ->Result<(), Error> {
-    let case1 = GameBoard::decode(String::from("EEBEEEWEWEEEEEEBWEEEBEEE")); 
-    case1.get_representative().print_board(); 
+    let case1 = GameBoard::decode(String::from("WEBEEEEEWEEEEEEBWEEEBEEE")); 
+    case1.print_board(); 
+   //case1.get_representative().print_board(); 
     let parents = ParentBoardIterator::new(Team::BLACK, case1).collect_vec(); 
     let project_directory = env::current_dir()?;
     let output_file_path = project_directory.join("parent_debug.txt");

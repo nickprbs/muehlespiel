@@ -2,3 +2,4 @@
 .DS_Store
 flamegraph.svg
 perf.data
+output.txt 
