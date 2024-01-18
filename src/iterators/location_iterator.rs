@@ -1,5 +1,6 @@
 use crate::datastructures::Location;
 
+#[derive(Debug)]
 pub struct LocationIterator {
     current_field_number: Location,
     forbidden_fields: Vec<Location>
@@ -14,6 +15,16 @@ impl LocationIterator {
     }
 
     pub(crate) fn with_forbidden(forbidden_fields: Vec<Location>) -> Self {
+        Self {
+            current_field_number: 1,
+            forbidden_fields
+        }
+    }
+
+    pub(crate) fn with_allowed(allowed_fields: Vec<Location>) -> Self {
+        let forbidden_fields = (1..=24)
+            .filter(|loc| !allowed_fields.contains(&loc))
+            .collect();
         Self {
             current_field_number: 1,
             forbidden_fields
