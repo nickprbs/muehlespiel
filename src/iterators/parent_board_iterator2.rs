@@ -1,7 +1,8 @@
+use itertools::Itertools;
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
-use crate::datastructures::{Encodable, GameBoard, Location, Team};
+use crate::datastructures::{Encodable, GameBoard, Location, Phase, Team};
 use crate::iterators::location_iterator::LocationIterator;
-use crate::iterators::NeighboursIterator;
+use crate::iterators::{ChildTurnIterator, NeighboursIterator};
 
 pub struct ParentBoardIterator {
     before_team: Team,
@@ -25,7 +26,7 @@ pub struct ParentBoardIterator {
 }
 
 impl ParentBoardIterator {
-    pub(crate) fn new(board: GameBoard, after_team: Team) -> Self {
+    pub(crate) fn new(after_team: Team, board: GameBoard) -> Self {
         let before_team = after_team.get_opponent();
         let can_fly = board.get_num_pieces(before_team) <= 3;
 
@@ -53,15 +54,11 @@ impl ParentBoardIterator {
                 return !this_in_mill;
             })
             .collect();
-        // TODO: There is one more location from where we could not have taken: The before-team's
+        // Note: There is one more location from where we could not have taken: The before-team's
         // moved piece pre position. We need to check that in the Iterator itself however,
         // since the moved piece changes throughout the run.
 
         let pre_position_iter = Box::new(LocationIterator::with_allowed(vec![]));
-
-        if board.encode() == String::from("BWEEEBEBEEWEEEEEWEEEEEEE") {
-            dbg!(possible_locations_taken_from.clone());
-        }
 
         Self {
             before_team,
@@ -123,36 +120,36 @@ impl Iterator for ParentBoardIterator {
             // 1) b (>>): can un-move the piece at the post position from another pre position
             // 2) a (>):  or we have visited all pre positions with that post position and need the
             //            use the next post position
-            if let Some(next_pre_location) = self.pre_position_iter.next() {
-                let past_pre_location = self.current_pre_position;
-                self.current_pre_position = Some(next_pre_location);
+            if let Some(past_pre_location) = self.current_pre_position {
+                let next_pre_location = self.pre_position_iter.next();
+                self.current_pre_position = next_pre_location;
 
-                // Reset the taken_from_iter to start over
-                // Important: We need to remove the pre location from the possible taken iter
-                self.taken_from_iter = if self.post_position_in_mill {
-                    let mut taken_from_locations = self.possible_locations_taken_from.clone();
-                    let index_of_pre_position = taken_from_locations.iter()
-                        .position(|x| *x == next_pre_location);
-                    if let Some(index) = index_of_pre_position {
-                        taken_from_locations.remove(index);
-                    } // else: it might be that the pre location is already ignored (for example for being in a mill)
+                if let Some(next_pre_location) = next_pre_location {
+                    // Reset the taken_from_iter to start over
+                    // Important: We need to remove the pre location from the possible taken iter
+                    self.taken_from_iter = if self.post_position_in_mill {
+                        let mut taken_from_locations = self.possible_locations_taken_from.clone();
+                        let index_of_pre_position = taken_from_locations.iter()
+                            .position(|x| *x == next_pre_location);
+                        if let Some(index) = index_of_pre_position {
+                            taken_from_locations.remove(index);
+                        } // else: it might be that the pre location is already ignored (for example for being in a mill)
 
-                    LocationIterator::with_allowed(taken_from_locations)
-                } else {
-                    // We cannot take anything
-                    LocationIterator::with_allowed(vec![])
-                };
+                        LocationIterator::with_allowed(taken_from_locations)
+                    } else {
+                        // We cannot take anything
+                        LocationIterator::with_allowed(vec![])
+                    };
+                }
 
                 // It may be that we can't take one, so the PHASE c above won't execute
                 // Therefore, return here if the pre_location isn't None
-                if let Some(past_pre_location) = past_pre_location {
-                    if !self.post_position_in_mill {
-                        return self.build_canonical_board_option(
-                            past_pre_location,
-                            self.current_post_position.unwrap(),
-                            None,
-                        );
-                    }
+                if !self.post_position_in_mill {
+                    return self.build_canonical_board_option(
+                        past_pre_location,
+                        self.current_post_position.unwrap(),
+                        None,
+                    );
                 }
 
                 // We have taken some pieces, so do recursive call so that we end up in PHASE c
@@ -175,6 +172,7 @@ impl Iterator for ParentBoardIterator {
                         ))
                     };
 
+                    self.current_pre_position = self.pre_position_iter.next();
                     // Resetting the taken_from_iter will be done for us in PHASE b
                     return self.next();
                 } else {
@@ -190,6 +188,41 @@ impl Iterator for ParentBoardIterator {
 
 #[test]
 fn test_parent_board_iter2() {
-    let case = GameBoard::decode(String::from("EWEEEWBBWEEWWWEEEBBBEEEW"));
-    ParentBoardIterator::new(case, Team::WHITE).count();
+    let parent_cases = [
+        "EEEEEEEBEEWWEBEBEEWEEEEE",
+        "EEBEEEEEEEBBWWEEEWEEEEEE",
+        "EEBEEEEEWEEEEBEBWEEEEEEW",
+        "WEEBWEEEEEEEEEWBEBEEEEEE",
+        "BBWEEEEEEEWEEEWEEEBEEEEE",
+        "WEEEEEEBEEEEBEEBEEEWEEWE",
+        "EEWBEBEWEEBEEWEEEEEEEEEE",
+        "WEEEEEEEEBEEEEWBEEWEEEEB",
+        "EEEEEEEEWBEEEEBWBWEEEEEE",
+        "EEBEEEEWEEBEEEEWEWBEEEEE",
+        "EEEEEEBEEEEEWEBEWWEEEBEE",
+        "BEEWEEEEEBWEBEEEWEEEEEEE",
+        "BEWEEWEEBEWEEEEEBEEEEEEE",
+        "EEEEWBEEWEEEEEEBEWEEBEEE",
+        "WEEEEEEEEBEEEEEBEWEEEBWE",
+        "WEEEEWEBWEEEBBEEEEEEEEEE",
+        "WEEEEEBWEEEEEWEEEBEEEBEE",
+        "BEEEEBEEEEWWEEEEEBEWEEEE",
+        "EEBEEEBEEBEEEEEWWEEEEEWE",
+    ].map(|case| {
+        GameBoard::decode(String::from(case))
+    });
+
+    parent_cases.into_iter().for_each(|parent| {
+        let children = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, parent);
+
+        children.for_each(|turn| {
+            let child_board = parent.apply(turn, Team::WHITE);
+            let mut parents: Vec<CanonicalGameBoard> = ParentBoardIterator::new(Team::BLACK, child_board).collect();
+            assert!(
+                parents.contains(&parent.get_representative()),
+                "Child {} does not include parent {}. Either ChildTurnIterator or ParentBoardIterator is wrong. Number of supposed parents: {:?}",
+                child_board.encode(), parent.encode(), parents.len()
+            );
+        })
+    })
 }
