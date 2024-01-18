@@ -28,27 +28,27 @@ pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<Canonica
     (lost_states, won_states)
 }
 
-fn mark_lost(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
-   if !states.is_empty() {
-   let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    for state in states.iter() {
-        if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-            if !lost_states.contains(state) {
-                lost_states.insert(*state);
-                for prev_state in ParentBoardIterator::new(team, *state) {
-                    if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                        possible_won_states.insert(prev_state);
+fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
+    if !states.is_empty() {
+        let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+        for state in states.iter() {
+            if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                if !lost_states.contains(state) {
+                    lost_states.insert(*state);
+                    for prev_state in ParentBoardIterator::new(team, *state) {
+                        if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                            possible_won_states.insert(prev_state);
+                        }
                     }
                 }
             }
         }
-    }
-    eprintln!("executing mark_won, len of input hash:{}", possible_won_states.len());
-    mark_won( possible_won_states, team.get_opponent(), lost_states, won_states);
+        eprintln!("executing mark_won, len of input hash:{}", possible_won_states.len());
+        mark_won(possible_won_states, team.get_opponent(), lost_states, won_states);
     }
 }
 
-fn mark_won(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
+fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
     if !states.is_empty() {
         let mut possible_lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
         let mut prev_states = FnvHashSet::default();
@@ -76,21 +76,16 @@ fn mark_won(states:  FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
         }
 
         eprintln!("executing mark_lost, input hash len:{}", possible_lost_states.len());
-        mark_lost( possible_lost_states, team.get_opponent(), lost_states, won_states);
+        mark_lost(possible_lost_states, team.get_opponent(), lost_states, won_states);
     }
 }
 
 
-
-
-
-
 #[test]
-
 fn test_logic() {
-   let case1 = GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE"));
-   let case2 = GameBoard::decode(String::from("WEEEEEEEEEBEBEEEWEEWEEEB"));
-   let case3 = GameBoard::decode(String::from("WBEEEEEEEEEEEEWEWEBEEEEB"));
+    let case1 = GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE"));
+    let case2 = GameBoard::decode(String::from("WEEEEEEEEEBEBEEEWEEWEEEB"));
+    let case3 = GameBoard::decode(String::from("WBEEEEEEEEEEEEWEWEBEEEEB"));
 
     case1.print_board();
     case2.print_board();
@@ -99,8 +94,6 @@ fn test_logic() {
     let case1_can = case1.get_representative();
     let case2_can = case2.get_representative();
     let case3_can = case3.get_representative();
-
-
 }
 
 #[test]
@@ -115,9 +108,9 @@ fn test_3vs3() {
 
     while let Some(board) = boards.next() {
         let canonical_board = GameBoard::decode(String::from(board)).get_representative();
-        let output_line = if lost_states.contains(&canonical_board){
+        let output_line = if lost_states.contains(&canonical_board) {
             0
-        } else if won_states.contains(&canonical_board){
+        } else if won_states.contains(&canonical_board) {
             2
         } else {
             1
