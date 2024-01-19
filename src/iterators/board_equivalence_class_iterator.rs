@@ -27,10 +27,6 @@ impl Iterator for BoardEquivalenceClassIterator {
     fn next(&mut self) -> Option<Self::Item> {
         self.previous_board = self.board;
 
-        if let None = self.board {
-            return None;
-        }
-
         return match self.board {
             None => None,
             Some(board) => {
