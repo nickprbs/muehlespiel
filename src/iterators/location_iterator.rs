@@ -1,5 +1,7 @@
 use crate::datastructures::Location;
 
+
+
 #[derive(Debug)]
 pub struct LocationIterator {
     current_field_number: Location,
@@ -36,19 +38,18 @@ impl Iterator for LocationIterator {
     type Item = Location;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current_field_number <= 24 {
-            let result = self.current_field_number;
-            self.current_field_number += 1;
+        loop {
+            if self.current_field_number <= 24 {
+                let result = self.current_field_number;
+                self.current_field_number += 1;
 
-            // Is this a forbidden field?
-            if self.forbidden_fields.contains(&result) {
-                self.next()
+                // Is this a forbidden field?
+                if !self.forbidden_fields.contains(&result) {
+                    return Some(result);
+                } // else loop again
             } else {
-                Some(result)
+                return None;
             }
-            
-        } else {
-            None
         }
     }
 }
