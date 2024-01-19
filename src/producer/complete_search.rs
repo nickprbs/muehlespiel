@@ -25,26 +25,20 @@ pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<Canonica
     let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let input = all_lost_positions();
-    let mut lost_states_b: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    let mut won_states_b: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    let mut second_input: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    for board in input.iter() {
-        second_input.insert(board.invert_teams().get_representative()); 
-    } 
-    
 
     mark_lost( input, Team::WHITE, &mut lost_states, &mut won_states);
-    mark_lost( second_input, Team::BLACK, &mut lost_states_b, &mut won_states_b);
-    (lost_states, won_states_b)
+    (lost_states, won_states)
 }
 
 fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
     if !states.is_empty() {
         let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+
         for state in states.iter() {
             if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
                 if !lost_states.contains(state) {
                     lost_states.insert(*state);
+
                     for prev_state in ParentBoardIterator::new(team, *state) {
                         if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
                             possible_won_states.insert(prev_state);
@@ -53,6 +47,7 @@ fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
                 }
             }
         }
+
         eprintln!("executing mark_won, len of input hash:{}", possible_won_states.len());
         mark_won(possible_won_states, team.get_opponent(), lost_states, won_states);
     }
@@ -117,10 +112,12 @@ fn test_3vs3() {
     let (lost_states, won_states) = complete_search();
 
     while let Some(board) = boards.next() {
-        let canonical_board = GameBoard::decode(String::from(board)).get_representative();
+        let board = GameBoard::decode(String::from(board));
+        let canonical_board = board.get_representative();
+        let inverted_canonical_board = board.invert_teams().get_representative();
         let output_line = if lost_states.contains(&canonical_board) {
             0
-        } else if won_states.contains(&canonical_board) {
+        } else if won_states.contains(&inverted_canonical_board) {
             2
         } else {
             1
@@ -130,7 +127,7 @@ fn test_3vs3() {
 
     let expected = fs::read_to_string("./tests/complete-search/3vs3/output.txt")
         .expect("File could not be read");
-    assert_eq!(expected.trim(), actual.trim());
+    assert_eq!(actual.trim(), expected.trim());
 }
 
 #[test]
@@ -157,5 +154,5 @@ fn test_5vs5() {
 
     let expected = fs::read_to_string("./tests/complete-search/5vs5/output.txt")
         .expect("File could not be read");
-    assert_eq!(expected.trim(), actual.trim());
+    assert_eq!(actual.trim(), expected.trim());
 }

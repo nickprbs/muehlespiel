@@ -75,10 +75,12 @@ fn complete_search_evaluation() -> Result<(), Error> {
 
         let current_gameboard = GameBoard::decode(line?);
         let canonical_board = current_gameboard.get_representative();
+        let inverted_board = current_gameboard.invert_teams().get_representative();
+
         let mut output_line_content;
         if lost_states.contains(&canonical_board){
             output_line_content = 0;
-        } else if won_states.contains(&canonical_board){
+        } else if won_states.contains(&inverted_board){
             output_line_content = 2;
         } else {
             output_line_content = 1;
