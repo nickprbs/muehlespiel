@@ -3,3 +3,4 @@
 flamegraph.svg
 perf.data
 output.txt 
+parent_debug.txt
