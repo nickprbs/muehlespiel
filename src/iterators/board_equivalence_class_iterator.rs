@@ -41,14 +41,14 @@ impl Iterator for BoardEquivalenceClassIterator {
                             self.board = None;
                         } else {
                             // Not mirrored
-                            self.board = Some(board.mirrored().flipped().rotated(1));
+                            self.board = Some(board.mirrored().flipped().rotated());
                             self.mirrored = true;
                             self.flipped = false;
                             self.rotated = 0;
                         }
                     } else {
                         // Not fully rotated
-                        self.board = Some(board.flipped().rotated(1));
+                        self.board = Some(board.flipped().rotated());
                         self.flipped = false;
                         self.rotated += 1;
                     }

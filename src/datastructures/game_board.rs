@@ -30,7 +30,7 @@ pub trait UsefulGameBoard {
     fn place_bits_at(&self, bits: u8, location: Location) -> GameBoard;
 
     fn flipped(&self) -> GameBoard;
-    fn rotated(&self, increments: u8) -> GameBoard;
+    fn rotated(&self) -> GameBoard;
     fn mirrored(&self) -> GameBoard;
 
     // Whether this board can be represented by the other through symmetries
@@ -189,17 +189,14 @@ impl UsefulGameBoard for GameBoard {
         output
     }
 
-    // rotates 90° clockwise times 'increments'
-    fn rotated(&self, increments: u8) -> GameBoard {
+    // rotates 90° clockwise
+    fn rotated(&self) -> GameBoard {
         let mut output = self.clone();
-        let iterations = increments % 4;
-        for _i in 1..=iterations {
-            let old_board = output;
-            let mut counter = 0;
-            for elem in old_board {
-                output[counter] = (elem >> 4) | (elem << (16 - 4));
-                counter += 1;
-            }
+        let old_board = output;
+        let mut counter = 0;
+        for elem in old_board {
+            output[counter] = (elem >> 4) | (elem << (16 - 4));
+            counter += 1;
         }
         output
     }
@@ -822,21 +819,21 @@ fn test_rotating() {
         0b0010010010010010
     ];
 
-    assert_eq!(case0.rotated(1), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
-    assert_eq!(case1.rotated(1), [0b0010100010100101, 0b1010001001101001, 0b1000000001100100]);
-    assert_eq!(case2.rotated(1), [0b0100010010010010, 0b1001100100100100, 0b0010001001001001]);
+    assert_eq!(case0.rotated(), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
+    assert_eq!(case1.rotated(), [0b0010100010100101, 0b1010001001101001, 0b1000000001100100]);
+    assert_eq!(case2.rotated(), [0b0100010010010010, 0b1001100100100100, 0b0010001001001001]);
 
-    assert_eq!(case0.rotated(2), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
-    assert_eq!(case1.rotated(2), [0b0101001010001010, 0b1001101000100110, 0b0100100000000110]);
-    assert_eq!(case2.rotated(2), [0b0010010001001001, 0b0100100110010010, 0b1001001000100100]);
+    assert_eq!(case0.rotated().rotated(), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
+    assert_eq!(case1.rotated().rotated(), [0b0101001010001010, 0b1001101000100110, 0b0100100000000110]);
+    assert_eq!(case2.rotated().rotated(), [0b0010010001001001, 0b0100100110010010, 0b1001001000100100]);
 
-    assert_eq!(case0.rotated(3), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
-    assert_eq!(case1.rotated(3), [0b1010010100101000, 0b0110100110100010, 0b0110010010000000]);
-    assert_eq!(case2.rotated(3), [0b1001001001000100, 0b0010010010011001, 0b0100100100100010]);
+    assert_eq!(case0.rotated().rotated().rotated(), [0b0000000000000000, 0b0000000000000000, 0b0000000000000000]);
+    assert_eq!(case1.rotated().rotated().rotated(), [0b1010010100101000, 0b0110100110100010, 0b0110010010000000]);
+    assert_eq!(case2.rotated().rotated().rotated(), [0b1001001001000100, 0b0010010010011001, 0b0100100100100010]);
 
-    assert_eq!(case0.rotated(4), case0);
-    assert_eq!(case1.rotated(4), case1);
-    assert_eq!(case2.rotated(4), case2);
+    assert_eq!(case0.rotated().rotated().rotated().rotated(), case0);
+    assert_eq!(case1.rotated().rotated().rotated().rotated(), case1);
+    assert_eq!(case2.rotated().rotated().rotated().rotated(), case2);
 }
 
 #[test]
