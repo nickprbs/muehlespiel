@@ -90,4 +90,3 @@ fn complete_search_evaluation() -> Result<(), Error> {
 
     Ok(())
 }
-

@@ -8,7 +8,7 @@ use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
-const MAX_NUM_PIECES_PER_TEAM: u8 = 3;
+const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
 
 
 /**
@@ -87,23 +87,21 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
 
 
 #[test]
-fn test_logic() {
-    let case1 = GameBoard::decode(String::from("EEBEEEEWWEEEEEEBWEEEBEEE"));
-    let case2 = GameBoard::decode(String::from("WEEEEEEEEEBEBEEEWEEWEEEB"));
-    let case3 = GameBoard::decode(String::from("WBEEEEEEEEEEEEWEWEBEEEEB"));
-
-    case1.print_board();
-    case2.print_board();
-    case3.print_board();
-
-    let case1_can = case1.get_representative();
-    let case2_can = case2.get_representative();
-    let case3_can = case3.get_representative();
+fn test_3vs3() {
+    test_x_vx_x(3);
 }
 
 #[test]
-fn test_3vs3() {
-    let file_contents = fs::read_to_string("./tests/complete-search/3vs3/input_felder.txt")
+fn test_5vs5() {
+    test_x_vx_x(5);
+}
+
+fn test_x_vx_x(x: u8) {
+    if MAX_NUM_PIECES_PER_TEAM < x {
+        panic!("Max num pieces is too small. Please set to at least {}", x);
+    }
+
+    let file_contents = fs::read_to_string(format!("./tests/complete-search/{x}vs{x}/input_felder.txt"))
         .expect("File could not be read");
 
     let mut boards = file_contents.split_terminator('\n');
@@ -125,34 +123,7 @@ fn test_3vs3() {
         actual = format!("{actual}\n{output_line}");
     }
 
-    let expected = fs::read_to_string("./tests/complete-search/3vs3/output.txt")
-        .expect("File could not be read");
-    assert_eq!(actual.trim(), expected.trim());
-}
-
-#[test]
-fn test_5vs5() {
-    let file_contents = fs::read_to_string("./tests/complete-search/5vs5/input_felder.txt")
-        .expect("File could not be read");
-
-    let mut boards = file_contents.split_terminator('\n');
-    let mut actual: String = String::new();
-
-    let (lost_states, won_states) = complete_search();
-
-    while let Some(board) = boards.next() {
-        let canonical_board = GameBoard::decode(String::from(board)).get_representative();
-        let output_line = if lost_states.contains(&canonical_board) {
-            0
-        } else if won_states.contains(&canonical_board) {
-            2
-        } else {
-            1
-        };
-        actual = format!("{actual}\n{output_line}");
-    }
-
-    let expected = fs::read_to_string("./tests/complete-search/5vs5/output.txt")
+    let expected = fs::read_to_string(format!("./tests/complete-search/{x}vs{x}/output.txt"))
         .expect("File could not be read");
     assert_eq!(actual.trim(), expected.trim());
 }
