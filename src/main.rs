@@ -7,6 +7,7 @@ use datastructures::*;
 use producer::complete_search::complete_search;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
 use std::sync::{Arc, Mutex};
+use std::time::SystemTime;
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
@@ -59,6 +60,8 @@ fn ai_mode() {
 }
 
 fn complete_search_evaluation() -> Result<(), Error> {
+    let start_time = SystemTime::now();
+
     let project_directory = env::current_dir()?;
     let input_file_path = project_directory.join("input_felder.txt");
     let output_file_path = project_directory.join("output.txt");
@@ -87,6 +90,8 @@ fn complete_search_evaluation() -> Result<(), Error> {
         }
         writeln!(output_file, "{}", output_line_content)?;
     }
+
+    println!("Took {}s", start_time.elapsed().unwrap().as_secs());
 
     Ok(())
 }
