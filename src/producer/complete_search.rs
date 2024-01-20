@@ -66,8 +66,6 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
             }
         }
 
-        let start_time = SystemTime::now();
-
         let possible_lost_states = prev_states.into_par_iter()
             .filter(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
@@ -77,8 +75,6 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
                 })
             })
             .collect();
-
-        dbg!(start_time.elapsed().unwrap().as_millis());
 
         mark_lost(possible_lost_states, team.get_opponent(), lost_states, won_states);
     }
