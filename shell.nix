@@ -13,6 +13,7 @@ mkShell {
     linuxKernel.packages.linux_latest_libre.perf
     hotspot
     hyperfine
+    cargo-flamegraph
   ];
   RUST_BACKTRACE = 1;
 }
