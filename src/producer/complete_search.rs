@@ -48,7 +48,7 @@ fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
             }
         }
 
-        eprintln!("executing mark_won, len of input hash:{}", possible_won_states.len());
+        println!("executing mark_won, len of input hash:{}", possible_won_states.len());
         mark_won(possible_won_states, team.get_opponent(), lost_states, won_states);
     }
 }
@@ -66,7 +66,7 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
             }
         }
 
-        let possible_lost_states = prev_states.into_par_iter()
+        let possible_lost_states: FnvHashSet<CanonicalGameBoard> = prev_states.into_par_iter()
             .filter(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
                 child_iter.all(|child_turn| {
@@ -76,6 +76,7 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
             })
             .collect();
 
+        println!("executing mark_lost, len of input hash:{}", possible_lost_states.len());
         mark_lost(possible_lost_states, team.get_opponent(), lost_states, won_states);
     }
 }
