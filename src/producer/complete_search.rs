@@ -1,4 +1,5 @@
 use std::fs;
+use std::sync::{Arc, Mutex, RwLock};
 use fnv::FnvHashSet;
 use itertools::Itertools;
 use rayon::prelude::*;
@@ -16,61 +17,85 @@ const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
  * Output one: LOST, Output two: WON
  */
 
-pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<CanonicalGameBoard>) {
-    let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
-    let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+pub fn complete_search(
+    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+) {
     let input = all_lost_positions();
-
-    mark_lost(input, Team::WHITE, &mut lost_states, &mut won_states);
-    (lost_states, won_states)
+    mark_lost(Arc::new(Mutex::new(input)), Team::WHITE, lost_states, won_states);
 }
 
-fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
+fn mark_lost(
+    states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>>,
+    team: Team,
+    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+) {
+    let states = states.lock().unwrap();
     if !states.is_empty() {
-        let mut possible_won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+        let possible_won_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
 
-        for state in states.iter() {
-            if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                if lost_states.insert(*state) { // insert returns true if lost_states didn't contain state
-                    for prev_state in ParentBoardIterator::new(team, *state) {
-                        if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                            possible_won_states.insert(prev_state);
+        states.par_iter()
+            .for_each(|state| {
+                if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                    if !lost_states.read().unwrap().contains(state) {
+                        lost_states.write().unwrap().insert(state.clone());
+
+                        for prev_state in ParentBoardIterator::new(team, state.clone()) {
+                            if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                                possible_won_states.lock().unwrap().insert(prev_state);
+                            }
                         }
                     }
                 }
-            }
-        }
+            });
 
-        println!("executing mark_won, len of input hash:{}", possible_won_states.len());
-        mark_won(possible_won_states, team.get_opponent(), lost_states, won_states);
+        println!("executing mark_won, len of input hash:{}", possible_won_states.lock().unwrap().len());
+        // TODO: Don't clone!!!
+        mark_won(Arc::clone(&possible_won_states), team.get_opponent(), Arc::clone(&lost_states), won_states);
     }
 }
 
-fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
+fn mark_won(
+    states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>>,
+    team: Team,
+    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+) {
+    let states = states.lock().unwrap();
     if !states.is_empty() {
-        let mut prev_states = FnvHashSet::default();
+        let mut prev_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
 
-        for state in states.iter() {
-            if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                if won_states.insert(*state) { // insert returns true if won_states didn't contain state
-                    ParentBoardIterator::new(team, *state)
-                        .for_each(|prev_state| { prev_states.insert(prev_state); });
+        states.par_iter()
+            .for_each(|state| {
+                if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                    if !won_states.read().unwrap().contains(state) {
+                        won_states.write().unwrap().insert(state.clone());
+
+                        ParentBoardIterator::new(team, state.clone())
+                            .for_each(|prev_state| {
+                                prev_states.lock().unwrap().insert(prev_state);
+                            });
+                    }
                 }
-            }
-        }
+            });
 
-        let possible_lost_states: FnvHashSet<CanonicalGameBoard> = prev_states.into_par_iter()
-            .filter(|prev_state| {
+        let possible_lost_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
+
+        prev_states.lock().unwrap().par_iter()
+            .for_each(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
-                child_iter.all(|child_turn| {
+                let x = child_iter.all(|child_turn| {
                     let child_board = prev_state.apply(child_turn, team.get_opponent()).get_representative();
-                    won_states.contains(&child_board)
-                })
-            })
-            .collect();
+                    won_states.read().unwrap().contains(&child_board)
+                });
+                if x {
+                    possible_lost_states.lock().unwrap().insert(prev_state.clone());
+                }
+            });
 
-        println!("executing mark_lost, len of input hash:{}", possible_lost_states.len());
-        mark_lost(possible_lost_states, team.get_opponent(), lost_states, won_states);
+        println!("executing mark_lost, len of input hash:{}", possible_lost_states.lock().unwrap().len());
+        mark_lost(possible_lost_states, team.get_opponent(), lost_states, Arc::clone(&won_states));
     }
 }
 
@@ -96,7 +121,12 @@ fn test_x_vx_x(x: u8) {
     let mut boards = file_contents.split_terminator('\n');
     let mut actual: String = String::new();
 
-    let (lost_states, won_states) = complete_search();
+    let lost_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    let won_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    complete_search(Arc::clone(&lost_states), Arc::clone(&won_states));
+
+    let lost_states = lost_states.read().unwrap();
+    let won_states = won_states.read().unwrap();
 
     while let Some(board) = boards.next() {
         let board = GameBoard::decode(String::from(board));

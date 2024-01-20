@@ -6,8 +6,9 @@ mod ai;
 use datastructures::*;
 use producer::complete_search::complete_search;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::SystemTime;
+use fnv::FnvHashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
@@ -47,9 +48,7 @@ fn ai_mode() {
             let mut history = history.lock().unwrap();
 
             if result.take_from.is_some() {
-                {
-                    history.took_a_piece();
-                }
+                history.took_a_piece();
             }
             // Add the board we produced to the history
             history.increment(board.apply(result, team));
@@ -70,7 +69,12 @@ fn complete_search_evaluation() -> Result<(), Error> {
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
 
-    let (lost_states, won_states) = complete_search();
+    let lost_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    let won_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    complete_search(Arc::clone(&lost_states), Arc::clone(&won_states));
+
+    let lost_states = lost_states.read().unwrap();
+    let won_states = won_states.read().unwrap();
 
     dbg!(lost_states.len());
 
