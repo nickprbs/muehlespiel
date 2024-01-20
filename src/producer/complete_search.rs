@@ -38,9 +38,7 @@ fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
 
         for state in states.iter() {
             if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                if !lost_states.contains(state) {
-                    lost_states.insert(*state);
-
+                if lost_states.insert(*state) { // insert returns true if lost_states didn't contain state
                     for prev_state in ParentBoardIterator::new(team, *state) {
                         if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
                             possible_won_states.insert(prev_state);
@@ -61,9 +59,7 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
 
         for state in states.iter() {
             if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                if !won_states.contains(state) {
-                    won_states.insert(*state);
-
+                if won_states.insert(*state) { // insert returns true if won_states didn't contain state
                     ParentBoardIterator::new(team, *state)
                         .for_each(|prev_state| { prev_states.insert(prev_state); });
                 }
