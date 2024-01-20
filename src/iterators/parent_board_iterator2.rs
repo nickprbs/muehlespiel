@@ -168,7 +168,7 @@ impl Iterator for ParentBoardIterator {
                         ))
                     } else {
                         Box::new(NeighboursIterator::new_with_forbidden(
-                            self.locations_of_before_team_post.clone(),
+                            vec![next_post_location],
                             self.all_locations_occupied_post.clone(),
                         ))
                     };
@@ -307,4 +307,6 @@ fn test_parent_board_iter2_minimality() {
             non_parent.encode()
         );
     }
+
+    assert_eq!(actual_parents.len(), 6);
 }
