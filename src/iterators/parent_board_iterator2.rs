@@ -251,3 +251,60 @@ fn test_parent_board_equivalence_1_and_2() {
     })
 
 }
+
+#[test]
+fn test_parent_board_iter2_minimality() {
+    // 4 White, 3 Black
+    let child = [
+        0b_10_10_00_10_10_00_00_00,
+        0b_00_01_00_01_00_01_00_00,
+        0b_00_00_00_00_00_00_00_00,
+    ];
+    let non_parents = [
+        [
+            0b_00_10_10_10_10_00_00_00,
+            0b_00_01_00_01_00_01_00_00,
+            0b_00_00_00_00_00_00_00_00,
+        ],
+        [
+            0b_10_10_10_10_00_00_00_00,
+            0b_00_01_00_01_00_01_00_00,
+            0b_00_00_00_00_00_00_00_00,
+        ],
+        [
+            0b_00_10_00_10_10_00_10_00,
+            0b_00_01_00_01_00_01_00_00,
+            0b_00_00_00_00_00_00_00_00,
+        ],
+        [
+            0b_00_00_10_10_10_00_00_10,
+            0b_00_01_00_01_00_01_00_00,
+            0b_00_00_00_00_00_00_00_00,
+        ],
+        [
+            0b_00_10_00_10_10_00_00_00,
+            0b_00_01_00_01_00_01_00_00,
+            0b_10_00_00_00_00_00_00_00,
+        ],
+        [
+            0b_10_10_10_00_00_00_00_00,
+            0b_00_01_00_01_00_01_00_00,
+            0b_00_00_00_00_10_00_00_00,
+        ],
+    ]
+        .iter()
+        .map(|non_parent| non_parent.get_representative());
+
+    let mut actual_parents: Vec<CanonicalGameBoard> = ParentBoardIterator::new(Team::WHITE.get_opponent(), child).collect();
+    dbg!(&child.get_representative().encode());
+    dbg!(&actual_parents.iter().map(|parent| parent.encode()).collect_vec());
+    dbg!(&non_parents.clone().map(|parent| parent.encode()).collect_vec());
+
+    for non_parent in non_parents {
+        assert!(
+            !actual_parents.contains(&non_parent),
+            "Parents wrongly contained {}",
+            non_parent.encode()
+        );
+    }
+}
