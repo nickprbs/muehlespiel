@@ -121,74 +121,72 @@ impl Iterator for ParentBoardIterator {
     type Item = CanonicalGameBoard;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(taken_from) = self.taken_from_iter.next() {
-            // PHASE c (>>>): The before-team moved into a mill, so now we're iterating all pieces that can
-            // be taken
-            return self.build_canonical_board_option(
-                self.current_pre_position.unwrap(),
-                self.current_post_position.unwrap(),
-                Some(taken_from),
-            );
-        } else {
-            // PHASES: The before-team did not move into a mill. We now need to check whether we
-            // 1) b (>>): can un-move the piece at the post position from another pre position
-            // 2) a (>):  or we have visited all pre positions with that post position and need the
-            //            use the next post position
-            if let Some(past_pre_location) = self.current_pre_position {
-                let next_pre_location = self.pre_position_iter.next();
-                self.current_pre_position = next_pre_location;
-
-                if let Some(next_pre_location) = next_pre_location {
-                    // Reset the taken_from_iter to start over
-                    self.set_up_taken_from_iter(next_pre_location);
-                }
-
-                // It may be that we can't take one, so the PHASE c above won't execute
-                // Therefore, return here if the pre_location isn't None
-                if !self.post_position_in_mill {
-                    return self.build_canonical_board_option(
-                        past_pre_location,
-                        self.current_post_position.unwrap(),
-                        None,
-                    );
-                }
-
-                // We have taken some pieces, so do recursive call so that we end up in PHASE c
-                return self.next();
+        loop {
+            if let Some(taken_from) = self.taken_from_iter.next() {
+                // PHASE c (>>>): The before-team moved into a mill, so now we're iterating all pieces that can
+                // be taken
+                return self.build_canonical_board_option(
+                    self.current_pre_position.unwrap(),
+                    self.current_post_position.unwrap(),
+                    Some(taken_from),
+                );
             } else {
-                // Go to next post position
-                if let Some(next_post_location) = self.post_position_iter.next() {
-                    self.current_post_position = Some(next_post_location);
-                    self.post_position_in_mill = self.post_board.is_mill_for_team_at(self.before_team, next_post_location);
+                // PHASES: The before-team did not move into a mill. We now need to check whether we
+                // 1) b (>>): can un-move the piece at the post position from another pre position
+                // 2) a (>):  or we have visited all pre positions with that post position and need the
+                //            use the next post position
+                if let Some(past_pre_location) = self.current_pre_position {
+                    let next_pre_location = self.pre_position_iter.next();
+                    self.current_pre_position = next_pre_location;
 
-                    // Reset the pre_position_iter
-                    self.pre_position_iter = if self.can_fly {
-                        Box::new(LocationIterator::with_forbidden(
-                            self.all_locations_occupied_post.clone()
-                        ))
-                    } else {
-                        Box::new(NeighboursIterator::new_with_forbidden(
-                            vec![next_post_location],
-                            self.all_locations_occupied_post.clone(),
-                        ))
-                    };
-
-                    self.current_pre_position = self.pre_position_iter.next();
-                    if let Some(next_pre_location) = self.current_pre_position {
+                    if let Some(next_pre_location) = next_pre_location {
                         // Reset the taken_from_iter to start over
                         self.set_up_taken_from_iter(next_pre_location);
                     }
 
-                    // Let's jump directly into PHASE a
-                    return self.next();
+                    // It may be that we can't take one, so the PHASE c above won't execute
+                    // Therefore, return here if the pre_location isn't None
+                    if !self.post_position_in_mill {
+                        return self.build_canonical_board_option(
+                            past_pre_location,
+                            self.current_post_position.unwrap(),
+                            None,
+                        );
+                    }
+
+                    // We have taken some pieces, so we do another loop iteration so that we end up in PHASE c
                 } else {
-                    // There's nothing we need to look at anymore, since we looked at all post positions
-                    return None;
+                    // Go to next post position
+                    if let Some(next_post_location) = self.post_position_iter.next() {
+                        self.current_post_position = Some(next_post_location);
+                        self.post_position_in_mill = self.post_board.is_mill_for_team_at(self.before_team, next_post_location);
+
+                        // Reset the pre_position_iter
+                        self.pre_position_iter = if self.can_fly {
+                            Box::new(LocationIterator::with_forbidden(
+                                self.all_locations_occupied_post.clone()
+                            ))
+                        } else {
+                            Box::new(NeighboursIterator::new_with_forbidden(
+                                vec![next_post_location],
+                                self.all_locations_occupied_post.clone(),
+                            ))
+                        };
+
+                        self.current_pre_position = self.pre_position_iter.next();
+                        if let Some(next_pre_location) = self.current_pre_position {
+                            // Reset the taken_from_iter to start over
+                            self.set_up_taken_from_iter(next_pre_location);
+                        }
+
+                        // Let's jump directly into PHASE a by doing another loop
+                    } else {
+                        // There's nothing we need to look at anymore, since we looked at all post positions
+                        return None;
+                    }
                 }
             }
         }
-
-        panic!("Reached the end of next() without returning anything. This must not happen!");
     }
 }
 
@@ -203,8 +201,8 @@ fn test_parent_board_iter2() {
     let parent_cases = file_content
         .split_terminator("\n")
         .map(|case| {
-        GameBoard::decode(String::from(case))
-    });
+            GameBoard::decode(String::from(case))
+        });
 
     parent_cases.into_iter().for_each(|parent| {
         let children = ChildTurnIterator::new(Phase::MOVE, Team::WHITE, parent);
@@ -249,7 +247,6 @@ fn test_parent_board_equivalence_1_and_2() {
             });
         })
     })
-
 }
 
 #[test]
