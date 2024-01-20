@@ -51,7 +51,6 @@ fn mark_lost(
             });
 
         println!("executing mark_won, len of input hash:{}", possible_won_states.lock().unwrap().len());
-        // TODO: Don't clone!!!
         mark_won(Arc::clone(&possible_won_states), team.get_opponent(), Arc::clone(&lost_states), won_states);
     }
 }
