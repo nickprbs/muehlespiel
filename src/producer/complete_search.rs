@@ -1,5 +1,4 @@
 use std::fs;
-use std::time::SystemTime;
 use fnv::FnvHashSet;
 use itertools::Itertools;
 use rayon::prelude::*;
@@ -17,12 +16,6 @@ const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
  * Output one: LOST, Output two: WON
  */
 
-//TODO: 
-// -terminate after all 3v3 positions 
-// -filter lost states : only by pieces taken, only 2 loser 3 winner stones 
-// -change structure : input whole hash map in mark_lost / mark_won 
-// -use profiler to determine expensive things (Flamegraph) 
-//  
 pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<CanonicalGameBoard>) {
     let mut lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
