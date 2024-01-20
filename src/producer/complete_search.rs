@@ -1,6 +1,8 @@
 use std::fs;
+use std::time::SystemTime;
 use fnv::FnvHashSet;
 use itertools::Itertools;
+use rayon::prelude::*;
 use crate::GameBoard;
 use crate::datastructures::{Team, Phase, Encodable};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
@@ -26,7 +28,7 @@ pub fn complete_search() -> (FnvHashSet<CanonicalGameBoard>, FnvHashSet<Canonica
     let mut won_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
     let input = all_lost_positions();
 
-    mark_lost( input, Team::WHITE, &mut lost_states, &mut won_states);
+    mark_lost(input, Team::WHITE, &mut lost_states, &mut won_states);
     (lost_states, won_states)
 }
 
@@ -55,7 +57,6 @@ fn mark_lost(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &m
 
 fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mut FnvHashSet<CanonicalGameBoard>, won_states: &mut FnvHashSet<CanonicalGameBoard>) {
     if !states.is_empty() {
-        let mut possible_lost_states: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
         let mut prev_states = FnvHashSet::default();
 
         for state in states.iter() {
@@ -69,18 +70,20 @@ fn mark_won(states: FnvHashSet<CanonicalGameBoard>, team: Team, lost_states: &mu
             }
         }
 
-        for prev_state in prev_states {
-            let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state);
-            if child_iter.all(|child_turn|
-                {
+        let start_time = SystemTime::now();
+
+        let possible_lost_states = prev_states.into_par_iter()
+            .filter(|prev_state| {
+                let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
+                child_iter.all(|child_turn| {
                     let child_board = prev_state.apply(child_turn, team.get_opponent()).get_representative();
                     won_states.contains(&child_board)
-                }) {
-                possible_lost_states.insert(prev_state);
-            }
-        }
+                })
+            })
+            .collect();
 
-        eprintln!("executing mark_lost, input hash len:{}", possible_lost_states.len());
+        dbg!(start_time.elapsed().unwrap().as_millis());
+
         mark_lost(possible_lost_states, team.get_opponent(), lost_states, won_states);
     }
 }
