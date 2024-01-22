@@ -50,7 +50,7 @@ fn mark_lost(
                 }
             });
 
-        println!("executing mark_won, len of input hash:{}", possible_won_states.lock().unwrap().len());
+        eprintln!("executing mark_won, len of input hash:{}", possible_won_states.lock().unwrap().len());
         mark_won(Arc::clone(&possible_won_states), team.get_opponent(), Arc::clone(&lost_states), won_states);
     }
 }
@@ -93,7 +93,7 @@ fn mark_won(
                 }
             });
 
-        println!("executing mark_lost, len of input hash:{}", possible_lost_states.lock().unwrap().len());
+        eprintln!("executing mark_lost, len of input hash:{}", possible_lost_states.lock().unwrap().len());
         mark_lost(possible_lost_states, team.get_opponent(), lost_states, Arc::clone(&won_states));
     }
 }

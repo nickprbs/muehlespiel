@@ -10,7 +10,7 @@ pub fn all_lost_positions() -> FnvHashSet<CanonicalGameBoard> {
         lost_by_pieces_taken_map.insert(*position); 
     }
 
-    println!("Enumerated all lost positions");
+    eprintln!("Enumerated all lost positions");
 
     lost_by_pieces_taken_map
 }
