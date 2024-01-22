@@ -1,14 +1,14 @@
 use std::mem::size_of;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::{thread, time};
 use std::sync::mpsc::channel;
 use std::time::SystemTime;
-use fnv::{FnvBuildHasher, FnvHashMap};
+use fnv::{FnvBuildHasher, FnvHashMap, FnvHashSet};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
 use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team, Turn};
-use crate::datastructures::game_board::UsefulGameBoard;
+use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::datastructures::Team::WHITE;
 use crate::iterators::ChildTurnIterator;
 
@@ -30,6 +30,8 @@ impl Agent for MinimaxAgent {
         team: Team,
         board: GameBoard,
         history: Arc<Mutex<impl BoardHistory + 'static>>,
+        lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        won_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
         num_invocations: usize, // How many times have we called this function before?
     ) -> Turn {
         let start_time = SystemTime::now();
@@ -65,6 +67,8 @@ impl Agent for MinimaxAgent {
                         BETA,
                         &mut transposition_table,
                         Arc::clone(&history),
+                        Arc::clone(&lost_states_for_white),
+                        Arc::clone(&won_states_for_white),
                         Arc::clone(&runner_best_move)
                     );
                     //eprintln!("Completed search with max depth {}", max_depth);
@@ -125,6 +129,8 @@ impl MinimaxAgent {
         alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
+        lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        won_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
         history: Arc<Mutex<impl BoardHistory>>,
         current_best_move_mutex: Arc<Mutex<Option<Turn>>>
     ) -> f32 {
@@ -135,8 +141,10 @@ impl MinimaxAgent {
         };
         let opponent = team_to_maximize.get_opponent();
 
-        return if depth == max_depth || board.is_game_done() {
-            evaluate_position(team_to_maximize, phase, board, depth, history)
+        return if depth == 1 && history.lock().unwrap().will_be_tie(board) {
+            1.0
+        } else if depth == max_depth || board.is_game_done() {
+            evaluate_position(team_to_maximize, phase, board, depth)
         } else {
             let turns = ChildTurnIterator::new(
                 phase,
@@ -169,7 +177,9 @@ impl MinimaxAgent {
                     -beta,
                     m,
                     transposition_table,
-                    history.clone(),
+                    Arc::clone(&history),
+                    Arc::clone(&lost_states_for_white),
+                    Arc::clone(&won_states_for_white),
                     Arc::clone(&current_best_move_mutex)
                 );
 
@@ -218,6 +228,8 @@ fn test_time_bounds() {
         WHITE,
         GameBoard::decode(String::from("WWWBBBEEEEEEEEEEEEEEEEEE")),
         Arc::new(Mutex::new(BoardHistoryMap::default())),
+        Arc::new(RwLock::new(FnvHashSet::default())),
+        Arc::new(RwLock::new(FnvHashSet::default())),
         20
     );
     let duration = SystemTime::now().duration_since(start).expect("Time went backwards");

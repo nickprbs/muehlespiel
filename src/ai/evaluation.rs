@@ -1,6 +1,5 @@
-use std::sync::{Arc, Mutex};
 use itertools::Itertools;
-use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team};
+use crate::datastructures::{Encodable, GameBoard, Phase, Team};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::iterators::ChildTurnIterator;
 
@@ -8,8 +7,7 @@ pub fn evaluate_position(
     team_to_eval: Team,
     phase: Phase,
     board: GameBoard,
-    depth: u16,
-    history: Arc<Mutex<impl BoardHistory>>
+    depth: u16
 ) -> f32 {
     let opponent_won = board.has_lost(team_to_eval);
     let we_won = board.has_lost(team_to_eval.get_opponent());
@@ -20,19 +18,11 @@ pub fn evaluate_position(
     } else if opponent_won {
         1.0 - (1.0 / (depth + 1) as f32)
     } else {
-
-        let history = history.lock().unwrap();
-
-        if history.will_be_tie(board) {
-            1.0
-        } else {
-            1.0 + evaluate_non_done_position(
-                team_to_eval,
-                phase,
-                board,
-                depth
-            )
-        }
+        1.0 + evaluate_non_done_position(
+            team_to_eval,
+            phase,
+            board,
+        )
     };
 
     debug_assert!(result <= 3.0);
@@ -48,8 +38,7 @@ const NUM_MOVES_FACTOR: f32 = 1.0 - STONE_COUNT_FACTOR- FLY_BONUS_FACTOR;
 fn evaluate_non_done_position(
     team_to_eval: Team,
     phase: Phase,
-    board: GameBoard,
-    depth: u16
+    board: GameBoard
 ) -> f32 {
     let own_stone_count = board.get_num_pieces(team_to_eval);
     let opponent_stone_count = board.get_num_pieces(team_to_eval.get_opponent());
@@ -86,12 +75,12 @@ fn test_evaluating_wins() {
     // Test different depths
     let case_white_won = GameBoard::decode(String::from("BBWWWEEEEEEEEEEEEEEEEEEE"));
     assert!(
-        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default()))) > evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 2, Arc::new(Mutex::new(BoardHistoryMap::default())))
+        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1) > evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 2)
     );
 
     // Test won vs non-won
     let case_black_won = GameBoard::decode(String::from("BBBWWEEEEEEEEEEEEEEEEEEE"));
     assert!(
-        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default()))) > evaluate_position(Team::WHITE, Phase::MOVE, case_black_won, 1, Arc::new(Mutex::new(BoardHistoryMap::default())))
+        evaluate_position(Team::WHITE, Phase::MOVE, case_white_won, 1) > evaluate_position(Team::WHITE, Phase::MOVE, case_black_won, 1)
     )
 }
