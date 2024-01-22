@@ -49,7 +49,14 @@ fn ai_mode() {
             history.lock().unwrap().increment(board);
         }
 
-        let result = MinimaxAgent::get_next_move(team, board, Arc::clone(&history), num_invocations);
+        let result = MinimaxAgent::get_next_move(
+            team,
+            board,
+            Arc::clone(&history),
+            Arc::clone(&lost_states_for_white),
+            Arc::clone(&won_states_for_white),
+            num_invocations
+        );
 
         {
             let mut history = history.lock().unwrap();
