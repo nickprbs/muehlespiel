@@ -8,8 +8,8 @@ pub fn lost_positions_by_pieces_taken() -> FnvHashSet<GameBoard> {
     let initial_looser_positions_hash = all_initial_looser_positions();
     let with_just_mills_hash = with_just_mills(initial_looser_positions_hash);
     //first set of outputs: 2 looser stones and one mill from the winner
-    with_just_mills_hash.clone().into_iter().for_each(|board: CanonicalGameBoard| {
-        output.insert(board);
+    with_just_mills_hash.iter().for_each(|board| {
+        output.insert(board.clone());
     });
     //for each output board: all combinations of possible boards where looser has 2 stones and winner has at least one mill and
     // 9 stones at most
