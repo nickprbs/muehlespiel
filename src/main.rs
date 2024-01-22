@@ -5,7 +5,7 @@ mod ai;
 
 use datastructures::*;
 use producer::complete_search::complete_search;
-use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File};
+use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, thread};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::SystemTime;
 use fnv::FnvHashSet;
@@ -13,13 +13,20 @@ use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
 fn main() {
-    //ai_mode();
-    complete_search_evaluation().unwrap();
+    ai_mode();
+    //complete_search_evaluation().unwrap();
 }
 
 fn ai_mode() {
     let mut history = Arc::new(Mutex::new(BoardHistoryMap::default()));
     let mut num_invocations = 0;
+
+    let lost_states_for_white = Arc::new(RwLock::new(FnvHashSet::default()));
+    let won_states_for_white = Arc::new(RwLock::new(FnvHashSet::default()));
+    thread::spawn(move|| {
+        complete_search(Arc::clone(&lost_states_for_white), Arc::clone(&won_states_for_white));
+        eprintln!("Completed complete search :)");
+    });
 
     loop {
         let mut input = String::new();
