@@ -9,7 +9,8 @@ use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
 use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team, Turn};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
-use crate::datastructures::Team::WHITE;
+use crate::datastructures::Phase::MOVE;
+use crate::datastructures::Team::{BLACK, WHITE};
 use crate::iterators::ChildTurnIterator;
 
 pub struct MinimaxAgent {}
@@ -31,7 +32,7 @@ impl Agent for MinimaxAgent {
         board: GameBoard,
         history: Arc<Mutex<impl BoardHistory + 'static>>,
         lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-        won_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        won_states_for_black: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
         num_invocations: usize, // How many times have we called this function before?
     ) -> Turn {
         let start_time = SystemTime::now();
@@ -49,10 +50,9 @@ impl Agent for MinimaxAgent {
             .spawn(move || {
                 let mut max_depth: u16 = 1;
 
-                eprintln!("Initing transposition table: {}bytes * {}", TRANSPOSITION_ENTRY_SIZE, TRANSPOSITION_TABLE_CAPACITY);
+                eprintln!("> Initing transposition table: {}bytes * {}", TRANSPOSITION_ENTRY_SIZE, TRANSPOSITION_TABLE_CAPACITY);
                 let mut transposition_table: TranspositionTable =
                     FnvHashMap::with_capacity_and_hasher(TRANSPOSITION_TABLE_CAPACITY, FnvBuildHasher::default());
-                eprintln!("Transposition table initialized");
 
                 // While we didn't receive a kill signal
                 while !kill_signal_rx.try_recv().is_ok() {
@@ -66,21 +66,21 @@ impl Agent for MinimaxAgent {
                         ALPHA,
                         BETA,
                         &mut transposition_table,
-                        Arc::clone(&history),
                         Arc::clone(&lost_states_for_white),
-                        Arc::clone(&won_states_for_white),
+                        Arc::clone(&won_states_for_black),
+                        Arc::clone(&history),
                         Arc::clone(&runner_best_move)
                     );
                     //eprintln!("Completed search with max depth {}", max_depth);
                     if max_depth < DEPTH_LIMIT {
                         max_depth += 1;
                     } else {
-                        eprintln!("Reached maximum depth");
+                        eprintln!("> Reached maximum depth");
                         break;
                     }
                 }
 
-                eprintln!("Minimax runner stopped");
+                eprintln!("> Minimax runner stopped");
             }).expect("Couldn't run minimax");
 
         // Wait until we used up most of the time
@@ -107,7 +107,7 @@ impl Agent for MinimaxAgent {
             },
             Some(current_best_move) => {
                 println!("{}", current_best_move.encode());
-                eprintln!("Took {}ms", start_time.elapsed().unwrap().as_millis());
+                eprintln!("> Took {}ms", start_time.elapsed().unwrap().as_millis());
 
                 // Tell the runner that its time to stop
                 // Ignore failures, since the thread could stop earlier, if it reached max depth for example
@@ -130,7 +130,7 @@ impl MinimaxAgent {
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
         lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-        won_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        won_states_for_black: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
         history: Arc<Mutex<impl BoardHistory>>,
         current_best_move_mutex: Arc<Mutex<Option<Turn>>>
     ) -> f32 {
@@ -141,8 +141,25 @@ impl MinimaxAgent {
         };
         let opponent = team_to_maximize.get_opponent();
 
-        return if depth == 1 && history.lock().unwrap().will_be_tie(board) {
+        let representative_as_white = match team_to_maximize {
+            BLACK => board.invert_teams().get_representative(),
+            WHITE => board.get_representative()
+        };
+        let representative_as_black = match team_to_maximize {
+            BLACK => board.get_representative(),
+            WHITE => board.invert_teams().get_representative()
+        };
+
+        return if depth == 0 && history.lock().unwrap().will_be_tie(board) {
             1.0
+        } else if depth > 0 && phase == MOVE && won_states_for_black.read().unwrap().contains(&representative_as_black) {
+            return if depth == 1 {
+                3.0
+            } else {
+                2.0 + (1.0 / depth as f32).powf(2.0)
+            }
+        } else if depth > 0 && phase == MOVE && lost_states_for_white.read().unwrap().contains(&representative_as_white) {
+            0.0
         } else if depth == max_depth || board.is_game_done() {
             evaluate_position(team_to_maximize, phase, board, depth)
         } else {
@@ -174,12 +191,12 @@ impl MinimaxAgent {
                     new_board,
                     depth + 1,
                     max_depth,
-                    -beta,
-                    m,
+                    -beta - 0.2,
+                    m - 0.2,
                     transposition_table,
-                    Arc::clone(&history),
                     Arc::clone(&lost_states_for_white),
-                    Arc::clone(&won_states_for_white),
+                    Arc::clone(&won_states_for_black),
+                    Arc::clone(&history),
                     Arc::clone(&current_best_move_mutex)
                 );
 
@@ -200,8 +217,8 @@ impl MinimaxAgent {
                         if !current_best_move.eq(&Some(turn.clone())) {
                             let last_best = current_best_move.clone();
                             match last_best {
-                                Some(last_best) => eprintln!("Replacing current best move ({}) with new: {} (result: {result})", last_best.encode(), turn.encode()),
-                                None => eprintln!("Setting initial best move to {} (result: {result})", turn.encode()),
+                                Some(last_best) => eprintln!("> Replacing current best move ({}) with new: {} (result: {result})", last_best.encode(), turn.encode()),
+                                None => eprintln!("> Setting initial best move to {} (result: {result})", turn.encode()),
                             };
                             current_best_move.replace(turn);
                         }

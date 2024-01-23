@@ -22,9 +22,11 @@ fn ai_mode() {
     let mut num_invocations = 0;
 
     let lost_states_for_white = Arc::new(RwLock::new(FnvHashSet::default()));
-    let won_states_for_white = Arc::new(RwLock::new(FnvHashSet::default()));
+    let won_states_for_black = Arc::new(RwLock::new(FnvHashSet::default()));
+    let lost_states_ref = Arc::clone(&lost_states_for_white);
+    let won_states_ref = Arc::clone(&won_states_for_black);
     thread::spawn(move|| {
-        complete_search(Arc::clone(&lost_states_for_white), Arc::clone(&won_states_for_white));
+        complete_search(lost_states_ref, won_states_ref);
         eprintln!("Completed complete search :)");
     });
 
@@ -54,7 +56,7 @@ fn ai_mode() {
             board,
             Arc::clone(&history),
             Arc::clone(&lost_states_for_white),
-            Arc::clone(&won_states_for_white),
+            Arc::clone(&won_states_for_black),
             num_invocations
         );
 

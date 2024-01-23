@@ -33,7 +33,7 @@ pub fn evaluate_position(
 
 const STONE_COUNT_FACTOR: f32 = 0.5;
 const FLY_BONUS_FACTOR: f32 = 0.01;
-const NUM_MOVES_FACTOR: f32 = 1.0 - STONE_COUNT_FACTOR- FLY_BONUS_FACTOR;
+const NUM_MOVES_FACTOR: f32 = 1.0 - STONE_COUNT_FACTOR - FLY_BONUS_FACTOR;
 
 fn evaluate_non_done_position(
     team_to_eval: Team,
