@@ -92,9 +92,9 @@ impl Agent for MinimaxAgent {
             .clone();
         return match current_best_move {
             None => {
-                eprintln!("THERE WAS NO MOVE! This should NEVER happen! Returning some move quickly...");
+                eprintln!("> THERE WAS NO MOVE! This should NEVER happen! Returning some move quickly...");
                 let phase = if 18_usize.saturating_sub(num_invocations) == 0 {
-                    Phase::MOVE
+                    MOVE
                 } else { Phase::PLACE };
 
                 let any_turn = ChildTurnIterator::new(phase, team, board)
