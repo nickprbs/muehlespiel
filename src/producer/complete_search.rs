@@ -10,7 +10,7 @@ use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
-const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
+const MAX_NUM_PIECES_PER_TEAM: u8 = 8;
 
 
 /**
