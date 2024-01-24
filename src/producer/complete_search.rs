@@ -105,6 +105,11 @@ fn test_3vs3() {
 }
 
 #[test]
+fn test_4vs4() {
+    test_x_vx_x(4);
+}
+
+#[test]
 fn test_5vs5() {
     test_x_vx_x(5);
 }
