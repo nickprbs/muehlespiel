@@ -14,6 +14,7 @@ mkShell {
     hotspot
     hyperfine
     cargo-flamegraph
+    valgrind
   ];
   RUST_BACKTRACE = 1;
 }
