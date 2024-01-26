@@ -85,11 +85,11 @@ fn mark_won(
         prev_states.lock().unwrap().par_drain()
             .for_each(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
-                let x = child_iter.all(|child_turn| {
+                let all_children_are_winners = child_iter.all(|child_turn| {
                     let child_board = prev_state.apply(child_turn, team.get_opponent()).get_representative();
                     won_states.read().unwrap().contains(&child_board)
                 });
-                if x {
+                if all_children_are_winners {
                     possible_lost_states.lock().unwrap().insert(prev_state.clone());
                 }
             });
