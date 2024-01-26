@@ -9,7 +9,7 @@ use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
-const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
+const MAX_NUM_PIECES_PER_TEAM: u8 = 6;
 
 
 /**
@@ -20,25 +20,24 @@ pub fn complete_search(
     lost_states: Arc<RwLock<CanonicalBoardSet>>,
     won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
-    let input = Arc::new(Mutex::new(all_lost_positions()));
-    mark_lost(Arc::clone(&input), Team::WHITE, lost_states, won_states);
+    let input = all_lost_positions();
+    mark_lost(input, Team::WHITE, lost_states, won_states);
 }
 
 fn mark_lost(
-    states: Arc<Mutex<CanonicalBoardSet>>,
+    mut states: CanonicalBoardSet,
     team: Team,
     lost_states: Arc<RwLock<CanonicalBoardSet>>,
     won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
-    let states = states.lock().unwrap();
     if !states.is_empty() {
-        let possible_won_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
+        let mut possible_won_states = Mutex::new(CanonicalBoardSet::default());
 
-        states.par_iter()
+        states.par_drain()
             .for_each(|state| {
                 if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                    if !lost_states.read().unwrap().contains(state) {
-                        lost_states.write().unwrap().insert(state.clone());
+                    if !lost_states.read().unwrap().contains(&state) {
+                        lost_states.write().unwrap().insert(state);
 
                         for prev_state in ParentBoardIterator::new(team, state.clone()) {
                             if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
@@ -49,28 +48,29 @@ fn mark_lost(
                 }
             });
 
+        drop(states);
+
         eprintln!("executing mark_won, len of input hash:{}", possible_won_states.lock().unwrap().len());
-        mark_won(Arc::clone(&possible_won_states), team.get_opponent(), Arc::clone(&lost_states), won_states);
+        mark_won(possible_won_states.into_inner().unwrap(), team.get_opponent(), Arc::clone(&lost_states), won_states);
     }
 }
 
 fn mark_won(
-    states: Arc<Mutex<CanonicalBoardSet>>,
+    mut states: CanonicalBoardSet,
     team: Team,
     lost_states: Arc<RwLock<CanonicalBoardSet>>,
     won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
-    let states = states.lock().unwrap();
     if !states.is_empty() {
-        let mut prev_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
+        let mut prev_states = Mutex::new(CanonicalBoardSet::default());
 
-        states.par_iter()
+        states.par_drain()
             .for_each(|state| {
                 if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                    if !won_states.read().unwrap().contains(state) {
+                    if !won_states.read().unwrap().contains(&state) {
                         won_states.write().unwrap().insert(state.clone());
 
-                        ParentBoardIterator::new(team, state.clone())
+                        ParentBoardIterator::new(team, state)
                             .for_each(|prev_state| {
                                 prev_states.lock().unwrap().insert(prev_state);
                             });
@@ -78,9 +78,11 @@ fn mark_won(
                 }
             });
 
-        let possible_lost_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
+        drop(states);
 
-        prev_states.lock().unwrap().par_iter()
+        let mut possible_lost_states = Mutex::new(CanonicalBoardSet::default());
+
+        prev_states.lock().unwrap().par_drain()
             .for_each(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
                 let x = child_iter.all(|child_turn| {
@@ -92,8 +94,11 @@ fn mark_won(
                 }
             });
 
+
+        drop(prev_states);
+
         eprintln!("executing mark_lost, len of input hash:{}", possible_lost_states.lock().unwrap().len());
-        mark_lost(possible_lost_states, team.get_opponent(), lost_states, Arc::clone(&won_states));
+        mark_lost(possible_lost_states.into_inner().unwrap(), team.get_opponent(), lost_states, Arc::clone(&won_states));
     }
 }
 
