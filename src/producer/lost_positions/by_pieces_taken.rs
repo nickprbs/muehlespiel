@@ -1,10 +1,9 @@
-use fnv::FnvHashSet;
 use itertools::Itertools;
-use crate::datastructures::{Encodable, GameBoard, game_board::CanonicalGameBoard, game_board::UsefulGameBoard};
+use crate::datastructures::{Encodable, GameBoard, game_board::CanonicalGameBoard, game_board::UsefulGameBoard, CanonicalBoardSet};
 use crate::iterators::{NRangeLocationsIterator, MillIterator, NLocationsIterator};
 
-pub fn lost_positions_by_pieces_taken() -> FnvHashSet<GameBoard> {
-    let mut output = FnvHashSet::default();
+pub fn lost_positions_by_pieces_taken() -> CanonicalBoardSet {
+    let mut output = CanonicalBoardSet::default();
     let initial_looser_positions_hash = all_initial_looser_positions();
     let with_just_mills_hash = with_just_mills(initial_looser_positions_hash);
     //first set of outputs: 2 looser stones and one mill from the winner
@@ -43,8 +42,8 @@ pub fn lost_positions_by_pieces_taken() -> FnvHashSet<GameBoard> {
 
 //initial buildup of all possible !canonical! boards where loser has two stones and winner has at
 //least one mill
-fn all_initial_looser_positions() -> FnvHashSet<CanonicalGameBoard> {
-    let mut second_temp_hash: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+fn all_initial_looser_positions() -> CanonicalBoardSet {
+    let mut second_temp_hash: CanonicalBoardSet = CanonicalBoardSet::default();
     let free_fields_vec = (1..=24).collect_vec();
     let second_stone_iter = NLocationsIterator::new(2, free_fields_vec);
     second_stone_iter.for_each(|looser_locations| {
@@ -57,8 +56,8 @@ fn all_initial_looser_positions() -> FnvHashSet<CanonicalGameBoard> {
     second_temp_hash
 }
 
-fn with_just_mills(two_stones_hash: FnvHashSet<CanonicalGameBoard>) -> FnvHashSet<CanonicalGameBoard> {
-    let mut with_just_mills_hash: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+fn with_just_mills(two_stones_hash: CanonicalBoardSet) -> CanonicalBoardSet {
+    let mut with_just_mills_hash: CanonicalBoardSet = CanonicalBoardSet::default();
     for _two_stone_board in two_stones_hash.iter() {
         let mut mill_iter = MillIterator::new();
         while let Some(single_mill_position) = mill_iter.next() {
@@ -107,7 +106,7 @@ fn test_with_just_mills() {
     let test_hash = all_initial_looser_positions();
     let mill_hash = with_just_mills(test_hash);
     println!("{}", mill_hash.len());
-    let mut second_temp_hash: FnvHashSet<CanonicalGameBoard> = FnvHashSet::default();
+    let mut second_temp_hash = CanonicalBoardSet::default();
     let free_fields_vec = (1..=24).collect_vec();
     let second_stone_iter = NLocationsIterator::new(5, free_fields_vec);
     second_stone_iter.for_each(|looser_locations| {

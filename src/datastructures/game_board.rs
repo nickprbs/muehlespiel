@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::mem::size_of;
 use std::ops::{BitAnd, BitOr};
 use std::vec;

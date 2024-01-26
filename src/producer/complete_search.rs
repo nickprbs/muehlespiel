@@ -1,16 +1,15 @@
 use std::fs;
 use std::sync::{Arc, Mutex, RwLock};
-use fnv::FnvHashSet;
 use itertools::Itertools;
 use rayon::prelude::*;
 use crate::GameBoard;
-use crate::datastructures::{Team, Phase, Encodable};
-use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
+use crate::datastructures::{Team, Phase, Encodable, CanonicalBoardSet};
+use crate::datastructures::game_board::UsefulGameBoard;
 use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
-const MAX_NUM_PIECES_PER_TEAM: u8 = 8;
+const MAX_NUM_PIECES_PER_TEAM: u8 = 5;
 
 
 /**
@@ -18,22 +17,22 @@ const MAX_NUM_PIECES_PER_TEAM: u8 = 8;
  */
 
 pub fn complete_search(
-    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    lost_states: Arc<RwLock<CanonicalBoardSet>>,
+    won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
-    let input = all_lost_positions();
-    mark_lost(Arc::new(Mutex::new(input)), Team::WHITE, lost_states, won_states);
+    let input = Arc::new(Mutex::new(all_lost_positions()));
+    mark_lost(Arc::clone(&input), Team::WHITE, lost_states, won_states);
 }
 
 fn mark_lost(
-    states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>>,
+    states: Arc<Mutex<CanonicalBoardSet>>,
     team: Team,
-    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    lost_states: Arc<RwLock<CanonicalBoardSet>>,
+    won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
     let states = states.lock().unwrap();
     if !states.is_empty() {
-        let possible_won_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
+        let possible_won_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
 
         states.par_iter()
             .for_each(|state| {
@@ -56,14 +55,14 @@ fn mark_lost(
 }
 
 fn mark_won(
-    states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>>,
+    states: Arc<Mutex<CanonicalBoardSet>>,
     team: Team,
-    lost_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-    won_states: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+    lost_states: Arc<RwLock<CanonicalBoardSet>>,
+    won_states: Arc<RwLock<CanonicalBoardSet>>,
 ) {
     let states = states.lock().unwrap();
     if !states.is_empty() {
-        let mut prev_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
+        let mut prev_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
 
         states.par_iter()
             .for_each(|state| {
@@ -79,7 +78,7 @@ fn mark_won(
                 }
             });
 
-        let possible_lost_states: Arc<Mutex<FnvHashSet<CanonicalGameBoard>>> = Arc::new(Mutex::new(FnvHashSet::default()));
+        let possible_lost_states: Arc<Mutex<CanonicalBoardSet>> = Arc::new(Mutex::new(CanonicalBoardSet::default()));
 
         prev_states.lock().unwrap().par_iter()
             .for_each(|prev_state| {
@@ -101,20 +100,25 @@ fn mark_won(
 
 #[test]
 fn test_3vs3() {
-    test_x_vx_x(3);
+    test_x_vs_x(3);
 }
 
 #[test]
 fn test_4vs4() {
-    test_x_vx_x(4);
+    test_x_vs_x(4);
 }
 
 #[test]
 fn test_5vs5() {
-    test_x_vx_x(5);
+    test_x_vs_x(5);
 }
 
-fn test_x_vx_x(x: u8) {
+#[test]
+fn test_6vs6() {
+    test_x_vs_x(6);
+}
+
+fn test_x_vs_x(x: u8) {
     if MAX_NUM_PIECES_PER_TEAM < x {
         panic!("Max num pieces is too small. Please set to at least {}", x);
     }
@@ -125,8 +129,8 @@ fn test_x_vx_x(x: u8) {
     let mut boards = file_contents.split_terminator('\n');
     let mut actual: String = String::new();
 
-    let lost_states = Arc::new(RwLock::new(FnvHashSet::default()));
-    let won_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    let lost_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
+    let won_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
     complete_search(Arc::clone(&lost_states), Arc::clone(&won_states));
 
     let lost_states = lost_states.read().unwrap();

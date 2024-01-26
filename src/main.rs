@@ -8,7 +8,6 @@ use producer::complete_search::complete_search;
 use std::{io::{Write, BufReader, BufRead, Error}, env, fs::File, thread};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::SystemTime;
-use fnv::FnvHashSet;
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::ai::{Agent, MinimaxAgent};
 
@@ -21,8 +20,8 @@ fn ai_mode() {
     let mut history = Arc::new(Mutex::new(BoardHistoryMap::default()));
     let mut num_invocations = 0;
 
-    let lost_states_for_white = Arc::new(RwLock::new(FnvHashSet::default()));
-    let won_states_for_black = Arc::new(RwLock::new(FnvHashSet::default()));
+    let lost_states_for_white = Arc::new(RwLock::new(CanonicalBoardSet::default()));
+    let won_states_for_black = Arc::new(RwLock::new(CanonicalBoardSet::default()));
     let lost_states_ref = Arc::clone(&lost_states_for_white);
     let won_states_ref = Arc::clone(&won_states_for_black);
     thread::spawn(move|| {
@@ -85,14 +84,15 @@ fn complete_search_evaluation() -> Result<(), Error> {
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
 
-    let lost_states = Arc::new(RwLock::new(FnvHashSet::default()));
-    let won_states = Arc::new(RwLock::new(FnvHashSet::default()));
+    let lost_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
+    let won_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
     complete_search(Arc::clone(&lost_states), Arc::clone(&won_states));
 
     let lost_states = lost_states.read().unwrap();
     let won_states = won_states.read().unwrap();
 
     dbg!(lost_states.len());
+    dbg!(won_states.len());
 
     for line in file_reader.lines() {
 

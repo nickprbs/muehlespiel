@@ -7,7 +7,7 @@ use fnv::{FnvBuildHasher, FnvHashMap, FnvHashSet};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
-use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team, Turn};
+use crate::datastructures::{BoardHistory, BoardHistoryMap, CanonicalBoardSet, Encodable, GameBoard, Phase, Team, Turn};
 use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
 use crate::datastructures::Phase::MOVE;
 use crate::datastructures::Team::{BLACK, WHITE};
@@ -31,8 +31,8 @@ impl Agent for MinimaxAgent {
         team: Team,
         board: GameBoard,
         history: Arc<Mutex<impl BoardHistory + 'static>>,
-        lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-        won_states_for_black: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        lost_states_for_white: Arc<RwLock<CanonicalBoardSet>>,
+        won_states_for_black: Arc<RwLock<CanonicalBoardSet>>,
         num_invocations: usize, // How many times have we called this function before?
     ) -> Turn {
         let start_time = SystemTime::now();
@@ -129,8 +129,8 @@ impl MinimaxAgent {
         alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
-        lost_states_for_white: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
-        won_states_for_black: Arc<RwLock<FnvHashSet<CanonicalGameBoard>>>,
+        lost_states_for_white: Arc<RwLock<CanonicalBoardSet>>,
+        won_states_for_black: Arc<RwLock<CanonicalBoardSet>>,
         history: Arc<Mutex<impl BoardHistory>>,
         current_best_move_mutex: Arc<Mutex<Option<Turn>>>
     ) -> f32 {
@@ -245,8 +245,8 @@ fn test_time_bounds() {
         WHITE,
         GameBoard::decode(String::from("WWWBBBEEEEEEEEEEEEEEEEEE")),
         Arc::new(Mutex::new(BoardHistoryMap::default())),
-        Arc::new(RwLock::new(FnvHashSet::default())),
-        Arc::new(RwLock::new(FnvHashSet::default())),
+        Arc::new(RwLock::new(CanonicalBoardSet::default())),
+        Arc::new(RwLock::new(CanonicalBoardSet::default())),
         20
     );
     let duration = SystemTime::now().duration_since(start).expect("Time went backwards");
