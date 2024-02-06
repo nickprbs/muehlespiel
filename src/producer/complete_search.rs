@@ -72,7 +72,9 @@ fn mark_won(
 
                         ParentBoardIterator::new(team, state)
                             .for_each(|prev_state| {
-                                prev_states.lock().unwrap().insert(prev_state);
+                                if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                                    prev_states.lock().unwrap().insert(prev_state);
+                                }
                             });
                     }
                 }
