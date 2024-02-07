@@ -1,4 +1,5 @@
 use std::fs;
+use std::ptr::read;
 use std::sync::{Arc, Mutex, RwLock};
 use itertools::Itertools;
 use rayon::prelude::*;
@@ -9,7 +10,7 @@ use crate::iterators::{ParentBoardIterator, ChildTurnIterator};
 
 use super::lost_positions::all_lost_positions;
 
-const MAX_NUM_PIECES_PER_TEAM: u8 = 8;
+const MAX_NUM_PIECES_PER_TEAM: u8 = 6;
 
 
 /**
@@ -36,9 +37,9 @@ fn mark_lost(
         states.par_drain()
             .for_each(|state| {
                 if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                    if !lost_states.read().unwrap().contains(&state) {
-                        lost_states.write().unwrap().insert(state);
+                    let newly_inserted = lost_states.write().unwrap().insert(state);
 
+                    if newly_inserted {
                         for prev_state in ParentBoardIterator::new(team, state.clone()) {
                             if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
                                 possible_won_states.lock().unwrap().insert(prev_state);
@@ -66,17 +67,17 @@ fn mark_won(
 
         states.par_drain()
             .for_each(|state| {
-                if state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                    if !won_states.read().unwrap().contains(&state) {
-                        won_states.write().unwrap().insert(state.clone());
+                let newly_inserted = won_states.write().unwrap().insert(state.clone());
 
-                        ParentBoardIterator::new(team, state)
-                            .for_each(|prev_state| {
-                                if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
-                                    prev_states.lock().unwrap().insert(prev_state);
-                                }
-                            });
-                    }
+                if newly_inserted {
+                    let mut local_prev_states = CanonicalBoardSet::default();
+                    ParentBoardIterator::new(team, state)
+                        .for_each(|prev_state| {
+                            if prev_state.get_num_pieces(Team::WHITE) <= MAX_NUM_PIECES_PER_TEAM && prev_state.get_num_pieces(Team::BLACK) <= MAX_NUM_PIECES_PER_TEAM {
+                                local_prev_states.insert(prev_state);
+                            }
+                        });
+                    prev_states.lock().unwrap().extend(local_prev_states);
                 }
             });
 
@@ -87,10 +88,12 @@ fn mark_won(
         prev_states.lock().unwrap().par_drain()
             .for_each(|prev_state| {
                 let mut child_iter = ChildTurnIterator::new(Phase::MOVE, team.get_opponent(), prev_state.clone());
+                let readonly_won_states = won_states.read().unwrap();
                 let all_children_are_winners = child_iter.all(|child_turn| {
                     let child_board = prev_state.apply(child_turn, team.get_opponent()).get_representative();
-                    won_states.read().unwrap().contains(&child_board)
+                    readonly_won_states.contains(&child_board)
                 });
+                drop(readonly_won_states);
                 if all_children_are_winners {
                     possible_lost_states.lock().unwrap().insert(prev_state.clone());
                 }
