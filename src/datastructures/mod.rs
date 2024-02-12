@@ -22,4 +22,5 @@ pub use crate::datastructures::{
     history::BoardHistoryMap as BoardHistoryMap,
     history::BoardHistory as BoardHistory,
     board_set::CanonicalBoardSet as CanonicalBoardSet,
+    board_set::WonLostMap as WonLostMap,
 };

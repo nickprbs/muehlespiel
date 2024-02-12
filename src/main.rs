@@ -20,12 +20,16 @@ fn ai_mode() {
     let mut history = Arc::new(Mutex::new(BoardHistoryMap::default()));
     let mut num_invocations = 0;
 
-    let lost_states_for_white = Arc::new(RwLock::new(CanonicalBoardSet::default()));
-    let won_states_for_black = Arc::new(RwLock::new(CanonicalBoardSet::default()));
+    let lost_states_for_white = Arc::new(RwLock::new(WonLostMap::default()));
+    let won_states_for_black = Arc::new(RwLock::new(WonLostMap::default()));
     let lost_states_ref = Arc::clone(&lost_states_for_white);
     let won_states_ref = Arc::clone(&won_states_for_black);
+    let lost_states_ref2 = Arc::clone(&lost_states_for_white);
+    let won_states_ref2 = Arc::clone(&won_states_for_black);
     thread::spawn(move|| {
         complete_search(lost_states_ref, won_states_ref);
+        eprintln!("len lost states: {}", lost_states_ref2.read().unwrap().len());
+        eprintln!("len won states: {}", won_states_ref2.read().unwrap().len());
         eprintln!("Completed complete search :)");
     });
 
@@ -84,8 +88,8 @@ fn complete_search_evaluation() -> Result<(), Error> {
     let file_reader = BufReader::new(input_file);
     let mut output_file = File::create(&output_file_path)?;
 
-    let lost_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
-    let won_states = Arc::new(RwLock::new(CanonicalBoardSet::default()));
+    let lost_states = Arc::new(RwLock::new(WonLostMap::default()));
+    let won_states = Arc::new(RwLock::new(WonLostMap::default()));
     complete_search(Arc::clone(&lost_states), Arc::clone(&won_states));
 
     let lost_states = lost_states.read().unwrap();
@@ -101,9 +105,9 @@ fn complete_search_evaluation() -> Result<(), Error> {
         let inverted_board = current_gameboard.invert_teams().get_representative();
 
         let mut output_line_content;
-        if lost_states.contains(&canonical_board){
+        if lost_states.contains_key(&canonical_board){
             output_line_content = 0;
-        } else if won_states.contains(&inverted_board){
+        } else if won_states.contains_key(&inverted_board){
             output_line_content = 2;
         } else {
             output_line_content = 1;

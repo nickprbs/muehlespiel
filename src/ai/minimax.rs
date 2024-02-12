@@ -1,15 +1,15 @@
 use std::mem::size_of;
 use std::sync::{Arc, Mutex, RwLock};
 use std::{thread, time};
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, Receiver};
 use std::time::SystemTime;
-use fnv::{FnvBuildHasher, FnvHashMap, FnvHashSet};
+use fnv::{FnvBuildHasher, FnvHashMap};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
-use crate::datastructures::{BoardHistory, BoardHistoryMap, CanonicalBoardSet, Encodable, GameBoard, Phase, Team, Turn};
-use crate::datastructures::game_board::{CanonicalGameBoard, UsefulGameBoard};
-use crate::datastructures::Phase::MOVE;
+use crate::datastructures::{BoardHistory, BoardHistoryMap, CanonicalBoardSet, Encodable, GameBoard, Phase, Team, Turn, WonLostMap};
+use crate::datastructures::game_board::UsefulGameBoard;
+use crate::datastructures::Phase::{MOVE, PLACE};
 use crate::datastructures::Team::{BLACK, WHITE};
 use crate::iterators::ChildTurnIterator;
 
@@ -20,10 +20,14 @@ const ALPHA: f32 = 1.1;
 const BETA: f32 = 2.42;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
-struct  TranspositionTableKey (u16, Turn);
+struct TranspositionTableKey(u16, Turn);
+
 type TranspositionTableValue = f32;
+
 const TRANSPOSITION_ENTRY_SIZE: usize = size_of::<TranspositionTableKey>() + size_of::<TranspositionTableValue>() + 32;
-const TRANSPOSITION_TABLE_CAPACITY: usize = 100_000_000; // 1,000,000,000 is roughly 2GB
+const TRANSPOSITION_TABLE_CAPACITY: usize = 100_000_000;
+
+// 1,000,000,000 is roughly 2GB
 type TranspositionTable = FnvHashMap<TranspositionTableKey, TranspositionTableValue>;
 
 impl Agent for MinimaxAgent {
@@ -31,8 +35,8 @@ impl Agent for MinimaxAgent {
         team: Team,
         board: GameBoard,
         history: Arc<Mutex<impl BoardHistory + 'static>>,
-        lost_states_for_white: Arc<RwLock<CanonicalBoardSet>>,
-        won_states_for_black: Arc<RwLock<CanonicalBoardSet>>,
+        lost_states_for_white: Arc<RwLock<WonLostMap>>,
+        won_states_for_black: Arc<RwLock<WonLostMap>>,
         num_invocations: usize, // How many times have we called this function before?
     ) -> Turn {
         let start_time = SystemTime::now();
@@ -48,38 +52,19 @@ impl Agent for MinimaxAgent {
             .name("minimax_runner".to_string())
             .stack_size(TRANSPOSITION_ENTRY_SIZE * TRANSPOSITION_TABLE_CAPACITY + 2 * 1024 * 1024 * 1024)
             .spawn(move || {
-                let mut max_depth: u16 = 1;
-
-                eprintln!("> Initing transposition table: {}bytes * {}", TRANSPOSITION_ENTRY_SIZE, TRANSPOSITION_TABLE_CAPACITY);
-                let mut transposition_table: TranspositionTable =
-                    FnvHashMap::with_capacity_and_hasher(TRANSPOSITION_TABLE_CAPACITY, FnvBuildHasher::default());
-
-                // While we didn't receive a kill signal
-                while !kill_signal_rx.try_recv().is_ok() {
-                    let placings_left = 18_usize.saturating_sub(num_invocations) as u8;
-                    Self::mini_max(
-                        placings_left,
-                        team,
-                        board,
-                        0,
-                        max_depth,
-                        ALPHA,
-                        BETA,
-                        &mut transposition_table,
-                        Arc::clone(&lost_states_for_white),
-                        Arc::clone(&won_states_for_black),
-                        Arc::clone(&history),
-                        Arc::clone(&runner_best_move)
-                    );
-                    //eprintln!("Completed search with max depth {}", max_depth);
-                    if max_depth < DEPTH_LIMIT {
-                        max_depth += 1;
-                    } else {
-                        eprintln!("> Reached maximum depth");
-                        break;
-                    }
-                }
-
+                let placings_left = 18_usize.saturating_sub(num_invocations) as u8;
+                Self::mini_max_root(
+                    kill_signal_rx,
+                    placings_left,
+                    team,
+                    board,
+                    ALPHA,
+                    BETA,
+                    Arc::clone(&lost_states_for_white),
+                    Arc::clone(&won_states_for_black),
+                    Arc::clone(&history),
+                    Arc::clone(&runner_best_move)
+                );
                 eprintln!("> Minimax runner stopped");
             }).expect("Couldn't run minimax");
 
@@ -104,7 +89,7 @@ impl Agent for MinimaxAgent {
                 println!("{}", any_turn.encode());
 
                 any_turn
-            },
+            }
             Some(current_best_move) => {
                 println!("{}", current_best_move.encode());
                 eprintln!("> Took {}ms", start_time.elapsed().unwrap().as_millis());
@@ -115,11 +100,144 @@ impl Agent for MinimaxAgent {
 
                 current_best_move
             }
-        }
+        };
     }
 }
 
 impl MinimaxAgent {
+    fn mini_max_root(
+        kill_signal: Receiver<()>,
+        num_placings_left: u8,
+        team_to_maximize: Team,
+        board: GameBoard,
+        alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
+        beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
+        lost_states_for_white: Arc<RwLock<WonLostMap>>,
+        won_states_for_black: Arc<RwLock<WonLostMap>>,
+        history: Arc<Mutex<impl BoardHistory>>,
+        current_best_move_mutex: Arc<Mutex<Option<Turn>>>,
+    ) {
+        let phase = if num_placings_left == 0 {
+            MOVE
+        } else {
+            PLACE
+        };
+
+        if phase == PLACE {
+            Self::mini_max_iterative_deepening(
+                kill_signal,
+                num_placings_left,
+                team_to_maximize,
+                board,
+                alpha,
+                beta,
+                lost_states_for_white,
+                won_states_for_black,
+                history,
+                current_best_move_mutex,
+            );
+            return;
+        }
+
+        let turns = ChildTurnIterator::new(
+            phase,
+            team_to_maximize,
+            board,
+        );
+
+        let killer_turns: Vec<(Turn, u16)> = turns
+            .filter_map(|turn| {
+                let board_after_turn = board.apply(turn.clone(), team_to_maximize);
+                let team_after_turn = team_to_maximize.get_opponent();
+                let representative_as_white = match team_after_turn {
+                    WHITE => board_after_turn.get_representative(),
+                    BLACK => board_after_turn.invert_teams().get_representative()
+                };
+                let representative_as_black = match team_after_turn {
+                    BLACK => board_after_turn.get_representative(),
+                    WHITE => board_after_turn.invert_teams().get_representative()
+                };
+                let lost_states_for_white = lost_states_for_white.read().unwrap();
+                let lost_record = lost_states_for_white.get(&representative_as_white);
+                let opponent_lost = lost_record.is_some();
+                let is_killer = opponent_lost;
+                let is_tie = history.lock().unwrap().will_be_tie(board_after_turn);
+
+                if is_killer && !is_tie {
+                    Some((turn, *lost_record.unwrap()))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if killer_turns.len() > 0 {
+            let min_distance_turn = killer_turns.iter().min_by_key(|(_turn, distance)| distance);
+            let any_killer_turn = min_distance_turn.unwrap().0.clone();
+            eprintln!("> Found a killer turn: {:?}", any_killer_turn);
+            let mut current_best_move = current_best_move_mutex.lock().unwrap();
+            current_best_move.replace(any_killer_turn);
+        } else {
+            Self::mini_max_iterative_deepening(
+                kill_signal,
+                num_placings_left,
+                team_to_maximize,
+                board,
+                alpha,
+                beta,
+                lost_states_for_white,
+                won_states_for_black,
+                history,
+                current_best_move_mutex,
+            );
+        }
+    }
+
+    fn mini_max_iterative_deepening(
+        kill_signal_rx: Receiver<()>,
+        num_placings_left: u8,
+        team: Team,
+        board: GameBoard,
+        alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
+        beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
+        lost_states_for_white: Arc<RwLock<WonLostMap>>,
+        won_states_for_black: Arc<RwLock<WonLostMap>>,
+        history: Arc<Mutex<impl BoardHistory>>,
+        current_best_move_mutex: Arc<Mutex<Option<Turn>>>,
+    ) {
+        let mut max_depth: u16 = 1;
+
+        eprintln!("> Initing transposition table: {}bytes * {}", TRANSPOSITION_ENTRY_SIZE, TRANSPOSITION_TABLE_CAPACITY);
+        let mut transposition_table: TranspositionTable =
+            FnvHashMap::with_capacity_and_hasher(TRANSPOSITION_TABLE_CAPACITY, FnvBuildHasher::default());
+
+        // While we didn't receive a kill signal
+        while !kill_signal_rx.try_recv().is_ok() {
+            Self::mini_max(
+                num_placings_left,
+                team,
+                board,
+                0,
+                max_depth,
+                alpha,
+                beta,
+                &mut transposition_table,
+                Arc::clone(&lost_states_for_white),
+                Arc::clone(&won_states_for_black),
+                Arc::clone(&history),
+                Arc::clone(&current_best_move_mutex),
+            );
+            //eprintln!("Completed search with max depth {}", max_depth);
+            if max_depth < DEPTH_LIMIT {
+                max_depth += 1;
+            } else {
+                eprintln!("> Reached maximum depth");
+                break;
+            }
+        }
+
+    }
+
     fn mini_max(
         num_placings_left: u8,
         team_to_maximize: Team,
@@ -129,15 +247,15 @@ impl MinimaxAgent {
         alpha: f32, // lower bound (this move is so bad that all it's children are probably too)
         beta: f32,  // upper bound (this move is op, take it immediately for this subtree!)
         transposition_table: &mut TranspositionTable,
-        lost_states_for_white: Arc<RwLock<CanonicalBoardSet>>,
-        won_states_for_black: Arc<RwLock<CanonicalBoardSet>>,
+        lost_states_for_white: Arc<RwLock<WonLostMap>>,
+        won_states_for_black: Arc<RwLock<WonLostMap>>,
         history: Arc<Mutex<impl BoardHistory>>,
-        current_best_move_mutex: Arc<Mutex<Option<Turn>>>
+        current_best_move_mutex: Arc<Mutex<Option<Turn>>>,
     ) -> f32 {
         let phase = if num_placings_left == 0 {
-            Phase::MOVE
+            MOVE
         } else {
-            Phase::PLACE
+            PLACE
         };
         let opponent = team_to_maximize.get_opponent();
 
@@ -145,28 +263,20 @@ impl MinimaxAgent {
             BLACK => board.invert_teams().get_representative(),
             WHITE => board.get_representative()
         };
-        let representative_as_black = match team_to_maximize {
-            BLACK => board.get_representative(),
-            WHITE => board.invert_teams().get_representative()
-        };
 
         return if depth == 0 && history.lock().unwrap().will_be_tie(board) {
-            1.0
-        } else if depth > 0 && phase == MOVE && won_states_for_black.read().unwrap().contains(&representative_as_black) {
-            return if depth == 1 {
-                3.0
+            if lost_states_for_white.read().unwrap().contains_key(&representative_as_white) {
+                1.0
             } else {
-                2.0 + (1.0 / depth as f32).powf(2.0)
+                0.0
             }
-        } else if depth > 0 && phase == MOVE && lost_states_for_white.read().unwrap().contains(&representative_as_white) {
-            0.0
         } else if depth == max_depth || board.is_game_done() {
             evaluate_position(team_to_maximize, phase, board, depth)
         } else {
             let turns = ChildTurnIterator::new(
                 phase,
                 team_to_maximize,
-                board
+                board,
             ).dedup()
                 .sorted_unstable_by(|turn_a, turn_b| {
                     // TODO: Test if sorting works
@@ -197,7 +307,7 @@ impl MinimaxAgent {
                     Arc::clone(&lost_states_for_white),
                     Arc::clone(&won_states_for_black),
                     Arc::clone(&history),
-                    Arc::clone(&current_best_move_mutex)
+                    Arc::clone(&current_best_move_mutex),
                 );
 
                 // Add the result to our transposition table
@@ -234,7 +344,7 @@ impl MinimaxAgent {
             }
 
             m
-        }
+        };
     }
 }
 
@@ -245,9 +355,9 @@ fn test_time_bounds() {
         WHITE,
         GameBoard::decode(String::from("WWWBBBEEEEEEEEEEEEEEEEEE")),
         Arc::new(Mutex::new(BoardHistoryMap::default())),
-        Arc::new(RwLock::new(CanonicalBoardSet::default())),
-        Arc::new(RwLock::new(CanonicalBoardSet::default())),
-        20
+        Arc::new(RwLock::new(WonLostMap::default())),
+        Arc::new(RwLock::new(WonLostMap::default())),
+        20,
     );
     let duration = SystemTime::now().duration_since(start).expect("Time went backwards");
 
