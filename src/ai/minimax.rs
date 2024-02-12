@@ -7,7 +7,7 @@ use fnv::{FnvBuildHasher, FnvHashMap};
 use itertools::Itertools;
 use crate::ai::agent::Agent;
 use crate::ai::evaluation::evaluate_position;
-use crate::datastructures::{BoardHistory, BoardHistoryMap, CanonicalBoardSet, Encodable, GameBoard, Phase, Team, Turn, WonLostMap};
+use crate::datastructures::{BoardHistory, BoardHistoryMap, Encodable, GameBoard, Phase, Team, Turn, WonLostMap};
 use crate::datastructures::game_board::UsefulGameBoard;
 use crate::datastructures::Phase::{MOVE, PLACE};
 use crate::datastructures::Team::{BLACK, WHITE};
@@ -149,22 +149,18 @@ impl MinimaxAgent {
             .filter_map(|turn| {
                 let board_after_turn = board.apply(turn.clone(), team_to_maximize);
                 let team_after_turn = team_to_maximize.get_opponent();
-                let representative_as_white = match team_after_turn {
+                let representative_as_post_white = match team_after_turn {
                     WHITE => board_after_turn.get_representative(),
                     BLACK => board_after_turn.invert_teams().get_representative()
                 };
-                let representative_as_black = match team_after_turn {
-                    BLACK => board_after_turn.get_representative(),
-                    WHITE => board_after_turn.invert_teams().get_representative()
-                };
                 let lost_states_for_white = lost_states_for_white.read().unwrap();
-                let lost_record = lost_states_for_white.get(&representative_as_white);
-                let opponent_lost = lost_record.is_some();
-                let is_killer = opponent_lost;
+                let lost_record = lost_states_for_white.get(&representative_as_post_white);
+                let is_killer = lost_record.is_some();
                 let is_tie = history.lock().unwrap().will_be_tie(board_after_turn);
 
                 if is_killer && !is_tie {
-                    Some((turn, *lost_record.unwrap()))
+                    let distance = *lost_record.unwrap();
+                    Some((turn, distance))
                 } else {
                     None
                 }
